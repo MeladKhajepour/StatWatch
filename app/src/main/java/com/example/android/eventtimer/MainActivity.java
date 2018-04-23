@@ -26,9 +26,6 @@ public class MainActivity extends AppCompatActivity {
 
     TimerUtils timer;
 
-    boolean timerStarted = false;
-    boolean timerPaused = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,20 +47,20 @@ public class MainActivity extends AppCompatActivity {
         viewsMap.get(TIMER_BTN).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(timerStarted && !timerPaused) {
-                    timer.pauseTimer();
-                    timerPaused = true;
-                    timerStarted = true;
 
-                } else if(timerStarted && timerPaused) {
-                    timer.resetTimer();
-                    timerPaused = false;
-                    timerStarted = false;
+                switch (timer.getTimerState()) {
 
-                } else {
-                    timer.startTimer();
-                    timerStarted = true;
-                    timerPaused = false;
+                    case RESET:
+                        timer.startTimer();
+                        break;
+
+                    case TIMING:
+                        timer.pauseTimer();
+                        break;
+
+                    case PAUSED:
+                        timer.resetTimer();
+                        break;
                 }
             }
         });
@@ -72,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 timer.addTime();
-                timerPaused = false;
-                timerStarted = false;
                 adapter.notifyDataSetChanged();
             }
         });

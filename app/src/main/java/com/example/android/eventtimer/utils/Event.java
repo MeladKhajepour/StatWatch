@@ -2,11 +2,11 @@ package com.example.android.eventtimer.utils;
 
 public class Event {
     private int label;
-    private long duration;
+    private long durationMillis;
 
-    public Event(int label, long duration) {
+    public Event(int label, long durationMillis) {
         this.label = label;
-        this.duration = duration;
+        this.durationMillis = durationMillis;
     }
 
     public int getLabel() {
@@ -17,15 +17,11 @@ public class Event {
         this.label = label;
     }
 
-    public long getDuration() {
-        return duration;
+    public long getDurationMillis() {
+        return durationMillis;
     }
 
-    public void setDuration(long duration) {
-        this.duration = duration;
-    }
-
-    public String formattedDuration() {
-        return TimerUtils.formatDuration(this.duration);
+    public void setDurationMillis(long durationMillis) {
+        this.durationMillis = durationMillis;
     }
 }

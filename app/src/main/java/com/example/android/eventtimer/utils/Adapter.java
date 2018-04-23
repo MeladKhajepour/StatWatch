@@ -34,7 +34,7 @@ public class Adapter extends ArrayAdapter {
         Event event = timerUtils.getEventAt(position);
 
         label.setText("Time " + event.getLabel());
-        time.setText(event.formattedDuration());
+        time.setText(TimerUtils.formatDuration(event.getDurationMillis()));
 
         return timeRow;
     }
