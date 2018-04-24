@@ -9,6 +9,7 @@ public class Event {
         this.durationMillis = durationMillis;
     }
 
+    //TODO: maybe add a method to return string formatted label
     public int getLabel() {
         return label;
     }

@@ -9,7 +9,7 @@
 
     <TextView
         android:layout_width="0dp"
-        android:id="@+id/time_label"
+        android:id="@+id/event_label"
         android:layout_height="match_parent"
         android:layout_weight="2"
         android:textAlignment="textStart"
@@ -17,7 +17,7 @@
 
     <TextView
         android:layout_width="0dp"
-        android:id="@+id/time_time"
+        android:id="@+id/event_time"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:textAlignment="textEnd"
