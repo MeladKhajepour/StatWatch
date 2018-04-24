@@ -27,7 +27,6 @@ public class TimerFragment extends Fragment {
     private Button timerBtn;
     private Button addBtn;
     private Timer timer;
-    private Event event;
     private OnEventAddedListener listener;
 
     @Override
@@ -98,11 +97,10 @@ public class TimerFragment extends Fragment {
 
     //TODO: send Event to main activity
     private void sendEventToActivity() {
-        event = timer.createEvent();
         setMainButtonLabel(TIMER_READY_BUTTON_LABEL);
         hideAddButton();
 
-        listener.onEventAdded(event);
+        listener.onEventAdded(timer.createEvent());
     }
 
     public interface OnEventAddedListener {
