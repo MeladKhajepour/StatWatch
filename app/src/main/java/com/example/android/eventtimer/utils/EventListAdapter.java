@@ -2,6 +2,7 @@ package com.example.android.eventtimer.utils;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +16,18 @@ import java.util.List;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private static class ViewHolder {
-        TextView label;
-        TextView time;
-    }
+    private List<Event> eventList;
+    private SparseBooleanArray selectedItemsIds;
 
     public EventListAdapter(Context context, List<Event> eventList) {
         super(context, R.layout.time_row, eventList);
+        this.eventList = eventList;
+        selectedItemsIds = new SparseBooleanArray();
+    }
+
+    private class ViewHolder {
+        TextView label;
+        TextView time;
     }
 
     @NonNull
@@ -53,5 +59,36 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         viewHolder.time.setText(Timer.formatDuration(event.getDurationMillis()));
 
         return convertView;
+    }
+
+    public void remove(Event event) {
+        eventList.remove(event);
+        notifyDataSetChanged();
+    }
+
+    public void toggleSelection(int position) {
+        selectView(position, !selectedItemsIds.get(position));
+    }
+
+    public void removeSelection() {
+        selectedItemsIds = new SparseBooleanArray();
+        notifyDataSetChanged();
+    }
+
+    public void selectView(int position, boolean value) {
+        if(value) {
+            selectedItemsIds.put(position, value);
+        } else {
+            selectedItemsIds.delete(position);
+        }
+        notifyDataSetChanged();
+    }
+
+    public int getSelectedCount() {
+        return selectedItemsIds.size();
+    }
+
+    public SparseBooleanArray getSelectedIds() {
+        return selectedItemsIds;
     }
 }
