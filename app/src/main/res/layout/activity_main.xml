@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
     <fragment
@@ -13,29 +12,25 @@
         android:layout_height="wrap_content"
         class="com.example.android.eventtimer.TimerFragment"
         tools:layout="@layout/timer_fragment"
-        android:layout_alignParentTop="true">
-
-    </fragment>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/event_list_fragment"/>
 
     <fragment
         android:id="@+id/event_list_fragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         class="com.example.android.eventtimer.EventListFragment"
         tools:layout="@layout/event_list_fragment"
-        android:layout_below="@id/timer_fragment"
-        android:layout_above="@+id/timer_stats_fragment">
-
-    </fragment>
+        app:layout_constraintTop_toBottomOf="@id/timer_fragment"
+        app:layout_constraintBottom_toTopOf="@+id/timer_stats_fragment"/>
 
     <fragment
         android:id="@id/timer_stats_fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
         class="com.example.android.eventtimer.TimerStatsFragment"
         tools:layout="@layout/timer_stats_fragment"
-        android:layout_alignParentBottom="true">
+        app:layout_constraintTop_toBottomOf="@id/event_list_fragment"/>
 
-    </fragment>
-
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>

@@ -1,7 +1,5 @@
 package com.example.android.eventtimer;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -18,30 +16,18 @@ import android.widget.ListView;
 
 import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.Event;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.example.android.eventtimer.MainActivity.EVENTS;
-import static com.example.android.eventtimer.MainActivity.PREFS;
 
 public class EventListFragment extends Fragment {
 
-    ListView eventListView;
-    List<Event> eventList;
-    EventListAdapter adapter;
+    private ListView eventListView;
+    private EventListAdapter adapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.event_list_fragment, container, false);
-
         eventListView = view.findViewById(R.id.events_list);
-
-        loadEvents();
 
         return view;
     }
@@ -54,7 +40,7 @@ public class EventListFragment extends Fragment {
     }
 
     private void setHandlers() {
-        adapter = new EventListAdapter(getContext(), eventList);
+        adapter = new EventListAdapter(getContext());
         eventListView.setAdapter(adapter);
         eventListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
 
@@ -81,10 +67,10 @@ public class EventListFragment extends Fragment {
                         // Captures all selected ids with a loop
                         for (int i = (selected.size() - 1); i >= 0; i--) {
                             if (selected.valueAt(i)) {
-                                Event selecteditem = adapter
+                                Event selectedEvent = adapter
                                         .getItem(selected.keyAt(i));
                                 // Remove selected items following the ids
-                                adapter.remove(selecteditem);
+                                adapter.remove(selectedEvent);
                             }
                         }
                         // Close CAB
@@ -122,8 +108,7 @@ public class EventListFragment extends Fragment {
                 view.animate().setDuration(500).alpha(0).withEndAction(new Runnable() {
                     @Override
                     public void run() {
-                        eventList.remove(clickedEvent);
-                        adapter.notifyDataSetChanged();
+                        adapter.remove(clickedEvent);
                         view.setAlpha(1);
                     }
                 });
@@ -131,33 +116,7 @@ public class EventListFragment extends Fragment {
         });
     }
 
-    //TODO: get event from main activity and update list
     public void addEvent(Event event) {
-        eventList.add(event); //TODO try adapter.add(event)
-        adapter.notifyDataSetChanged();
-        saveEvents();
-    }
-
-    private void saveEvents() {
-        SharedPreferences prefs = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-
-        Gson gson = new Gson();
-        String json = gson.toJson(eventList);
-        editor.putString(EVENTS, json);
-        editor.apply();     // This line is IMPORTANT !!!
-    }
-
-    private void loadEvents() {
-        SharedPreferences prefs = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-
-        Gson gson = new Gson();
-        String json = prefs.getString(EVENTS, null);
-        Type type = new TypeToken<ArrayList<Event>>() {}.getType();
-        if(gson.fromJson(json, type) == null) {
-            this.eventList = new ArrayList<>();
-        } else {
-            this.eventList = gson.fromJson(json, type);
-        }
+        adapter.add(event);
     }
 }

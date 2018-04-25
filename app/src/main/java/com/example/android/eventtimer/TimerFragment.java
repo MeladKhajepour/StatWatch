@@ -14,7 +14,7 @@ import android.widget.TextView;
 import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.Timer;
 
-import static com.example.android.eventtimer.MainActivity.PREFS;
+import static com.example.android.eventtimer.utils.DataManager.PREFS;
 
 public class TimerFragment extends Fragment {
 
@@ -35,7 +35,7 @@ public class TimerFragment extends Fragment {
         try {
             listener = (OnEventAddedListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement OnArticleSelectedListener");
+            throw new ClassCastException(context.toString() + " must implement OnEventAddedListener");
         }
     }
 
@@ -95,7 +95,6 @@ public class TimerFragment extends Fragment {
         });
     }
 
-    //TODO: send Event to main activity
     private void sendEventToActivity() {
         setMainButtonLabel(TIMER_READY_BUTTON_LABEL);
         hideAddButton();

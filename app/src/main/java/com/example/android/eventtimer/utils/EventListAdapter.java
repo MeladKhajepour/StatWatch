@@ -11,17 +11,15 @@ import android.widget.TextView;
 
 import com.example.android.eventtimer.R;
 
-import java.util.List;
+import static com.example.android.eventtimer.utils.DataManager.PREFS;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private List<Event> eventList;
     private SparseBooleanArray selectedItemsIds;
 
-    public EventListAdapter(Context context, List<Event> eventList) {
-        super(context, R.layout.time_row, eventList);
-        this.eventList = eventList;
+    public EventListAdapter(Context context) {
+        super(context, R.layout.time_row, DataManager.loadEvents(context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
         selectedItemsIds = new SparseBooleanArray();
     }
 
@@ -61,13 +59,18 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         return convertView;
     }
 
+    public void toggleSelection(int position) {
+        selectView(position, !selectedItemsIds.get(position));
+    }
+
     public void remove(Event event) {
-        eventList.remove(event);
+        DataManager.removeEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
         notifyDataSetChanged();
     }
 
-    public void toggleSelection(int position) {
-        selectView(position, !selectedItemsIds.get(position));
+    public void add(Event event) {
+        DataManager.addEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
+        notifyDataSetChanged();
     }
 
     public void removeSelection() {
@@ -77,15 +80,11 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 
     public void selectView(int position, boolean value) {
         if(value) {
-            selectedItemsIds.put(position, value);
+            selectedItemsIds.put(position, true);
         } else {
             selectedItemsIds.delete(position);
         }
         notifyDataSetChanged();
-    }
-
-    public int getSelectedCount() {
-        return selectedItemsIds.size();
     }
 
     public SparseBooleanArray getSelectedIds() {

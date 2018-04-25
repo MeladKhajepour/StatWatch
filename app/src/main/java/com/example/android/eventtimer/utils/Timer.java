@@ -6,7 +6,7 @@ import android.os.SystemClock;
 import android.widget.TextView;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.example.android.eventtimer.MainActivity.INDEX;
+import static com.example.android.eventtimer.utils.DataManager.INDEX;
 
 public class Timer {
     public enum TimerState {TIMING, STOPPED, RESET}

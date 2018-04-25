@@ -7,22 +7,20 @@ import com.example.android.eventtimer.utils.Event;
 
 public class MainActivity extends AppCompatActivity implements TimerFragment.OnEventAddedListener {
 
-    public static final String PREFS = "prefs";
-    public static final String EVENTS = "events";
-    public static final String INDEX = "index";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
 
-    //retrieve event from timer fragment and send to list fragment
     @Override
     public void onEventAdded(Event event) {
-        EventListFragment fragment = (EventListFragment) getSupportFragmentManager().
-                findFragmentById(R.id.event_list_fragment);
+        android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
 
-        fragment.addEvent(event);
+        EventListFragment eventListFragment = (EventListFragment) fm.findFragmentById(R.id.event_list_fragment);
+        TimerStatsFragment timerStatsFragment = (TimerStatsFragment) fm.findFragmentById(R.id.timer_stats_fragment);
+
+        eventListFragment.addEvent(event);
+        timerStatsFragment.updateStats(event);
     }
 }
