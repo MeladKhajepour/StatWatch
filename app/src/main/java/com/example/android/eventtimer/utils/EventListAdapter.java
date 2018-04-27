@@ -9,17 +9,18 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.example.android.eventtimer.MainActivity;
 import com.example.android.eventtimer.R;
 
-import static com.example.android.eventtimer.utils.DataManager.PREFS;
+import static com.example.android.eventtimer.utils.EventManager.PREFS;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
     private SparseBooleanArray selectedItemsIds;
 
-    public EventListAdapter(Context context) {
-        super(context, R.layout.time_row, DataManager.loadEvents(context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
+    public EventListAdapter(MainActivity app) {
+        super(app.getBaseContext(), R.layout.time_row, EventManager.getEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
         selectedItemsIds = new SparseBooleanArray();
     }
 
@@ -64,12 +65,12 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     }
 
     public void remove(Event event) {
-        DataManager.removeEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
+        EventManager.removeEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
         notifyDataSetChanged();
     }
 
     public void add(Event event) {
-        DataManager.addEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
+        EventManager.addEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
         notifyDataSetChanged();
     }
 

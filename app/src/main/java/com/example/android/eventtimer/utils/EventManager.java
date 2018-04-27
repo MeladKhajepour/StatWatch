@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class DataManager {
+public class EventManager {
 
     public static final String PREFS = "prefs";
     public static final String EVENTS = "events";
@@ -28,7 +28,18 @@ public class DataManager {
         saveEvents(prefs);
     }
 
-    public static List<Event> loadEvents(SharedPreferences prefs) {
+    public static List<Event> getEvents(SharedPreferences prefs) {
+        if(eventList == null) {
+            loadEvents(prefs);
+        }
+        return eventList;
+    }
+
+    public static Event getLastEvent() {
+        return eventList.get(eventList.size() - 1);
+    }
+
+    private static void loadEvents(SharedPreferences prefs) {
         Gson gson = new Gson();
         String json = prefs.getString(EVENTS, null);
 
@@ -39,12 +50,11 @@ public class DataManager {
         } else {
             eventList = gson.fromJson(json, type);
         }
-
-        return eventList;
     }
 
     private static void saveEvents(SharedPreferences prefs) {
         String json = new Gson().toJson(eventList);
         prefs.edit().putString(EVENTS, json).apply();
     }
+
 }

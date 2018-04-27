@@ -3,6 +3,7 @@ package com.example.android.eventtimer;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +15,7 @@ import android.widget.TextView;
 import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.Timer;
 
-import static com.example.android.eventtimer.utils.DataManager.PREFS;
+import static com.example.android.eventtimer.utils.EventManager.PREFS;
 
 public class TimerFragment extends Fragment {
 
@@ -23,45 +24,42 @@ public class TimerFragment extends Fragment {
     private final String TIMER_STOPPED_BUTTON_LABEL = "Reset";
 
     //TODO: change the textview into a linear layout containing the h:m:s
-    private TextView textView;
     private Button timerBtn;
     private Button addBtn;
     private Timer timer;
-    private OnEventAddedListener listener;
+    private AddEventListener mainActivityListener;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            listener = (OnEventAddedListener) context;
+            mainActivityListener = (AddEventListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement OnEventAddedListener");
+            throw new ClassCastException(context.toString() + " must implement AddEventListener");
         }
     }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        View view = inflater.inflate(R.layout.timer_fragment, container, false);
-
-        textView = view.findViewById(R.id.timer_textview);
-        timerBtn = view.findViewById(R.id.timer_btn);
-        addBtn = view.findViewById(R.id.timer_add_btn);
-
-        timer = new Timer(textView, getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE));
-
-        return view;
+    public void init(MainActivity app) {
+        setupViews(app);
+        setupHandlers();
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    private void setupViews(MainActivity app) {
+        TextView textView = app.findViewById(R.id.timer_textview);
+        timerBtn = app.findViewById(R.id.timer_btn);
+        addBtn = app.findViewById(R.id.timer_add_btn);
 
-        setupHandlers(view);
+        timer = new Timer(textView, app.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
     }
 
-    private void setupHandlers(View view) {
-        view.findViewById(R.id.timer_btn).setOnClickListener(new View.OnClickListener() {
+    private void setupHandlers() {
+        timerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
@@ -87,7 +85,7 @@ public class TimerFragment extends Fragment {
             }
         });
 
-        view.findViewById(R.id.timer_add_btn).setOnClickListener(new View.OnClickListener() {
+        addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendEventToActivity();
@@ -99,11 +97,11 @@ public class TimerFragment extends Fragment {
         setMainButtonLabel(TIMER_READY_BUTTON_LABEL);
         hideAddButton();
 
-        listener.onEventAdded(timer.createEvent());
+        mainActivityListener.onEventReceived(timer.createEvent());
     }
 
-    public interface OnEventAddedListener {
-        void onEventAdded(Event event);
+    public interface AddEventListener {
+        void onEventReceived(Event event);
     }
 
     private void setMainButtonLabel(String text) {

@@ -1,15 +1,14 @@
 package com.example.android.eventtimer;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -21,27 +20,37 @@ import com.example.android.eventtimer.utils.Event;
 public class EventListFragment extends Fragment {
 
     private ListView eventListView;
-    private EventListAdapter adapter;
+    private EventListAdapter eventListAdapter;
+    private RemoveEventListener mainActivityListener;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        View view = inflater.inflate(R.layout.event_list_fragment, container, false);
-        eventListView = view.findViewById(R.id.events_list);
-
-        return view;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        setHandlers();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mainActivityListener = (RemoveEventListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement RemoveEventListener");
+        }
     }
 
-    private void setHandlers() {
-        adapter = new EventListAdapter(getContext());
-        eventListView.setAdapter(adapter);
+    public void init(MainActivity app) {
+        setupViews(app);
+        setupHandlers(app);
+    }
+
+    private void setupViews(MainActivity app) {
+        eventListView = app.findViewById(R.id.events_list);
+    }
+
+    private void setupHandlers(MainActivity app) {
+        eventListAdapter = new EventListAdapter(app);
+        eventListView.setAdapter(eventListAdapter);
         eventListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
 
         eventListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
@@ -54,23 +63,23 @@ public class EventListFragment extends Fragment {
                 // Set the CAB title according to total checked items
                 mode.setTitle(checkedCount + " Selected");
                 // Calls toggleSelection method from ListViewAdapter Class
-                adapter.toggleSelection(position);
+                eventListAdapter.toggleSelection(position);
             }
 
             @Override
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.delete:
+                    case R.id.action_delete_selected_events:
                         // Calls getSelectedIds method from ListViewAdapter Class
-                        SparseBooleanArray selected = adapter
+                        SparseBooleanArray selected = eventListAdapter
                                 .getSelectedIds();
                         // Captures all selected ids with a loop
                         for (int i = (selected.size() - 1); i >= 0; i--) {
                             if (selected.valueAt(i)) {
-                                Event selectedEvent = adapter
+                                Event selectedEvent = eventListAdapter
                                         .getItem(selected.keyAt(i));
                                 // Remove selected items following the ids
-                                adapter.remove(selectedEvent);
+                                removeEvent(selectedEvent);
                             }
                         }
                         // Close CAB
@@ -83,13 +92,13 @@ public class EventListFragment extends Fragment {
 
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                mode.getMenuInflater().inflate(R.menu.action_bar, menu);
+                mode.getMenuInflater().inflate(R.menu.contexual_menu, menu);
                 return true;
             }
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
-                adapter.removeSelection();
+                eventListAdapter.removeSelection();
             }
 
             @Override
@@ -108,7 +117,7 @@ public class EventListFragment extends Fragment {
                 view.animate().setDuration(500).alpha(0).withEndAction(new Runnable() {
                     @Override
                     public void run() {
-                        adapter.remove(clickedEvent);
+                        removeEvent(clickedEvent);
                         view.setAlpha(1);
                     }
                 });
@@ -117,6 +126,15 @@ public class EventListFragment extends Fragment {
     }
 
     public void addEvent(Event event) {
-        adapter.add(event);
+        eventListAdapter.add(event);
+    }
+
+    public interface RemoveEventListener {
+        void onEventRemoved(long eventMillis);
+    }
+
+    private void removeEvent(Event event) {
+        eventListAdapter.remove(event);
+        mainActivityListener.onEventRemoved(event.getDurationMillis());
     }
 }

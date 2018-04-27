@@ -21,8 +21,4 @@ public class Event {
     public long getDurationMillis() {
         return durationMillis;
     }
-
-    public void setDurationMillis(long durationMillis) {
-        this.durationMillis = durationMillis;
-    }
 }
