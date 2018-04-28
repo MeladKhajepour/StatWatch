@@ -19,7 +19,7 @@ import java.util.List;
 
 import static com.example.android.eventtimer.utils.EventManager.PREFS;
 
-public class TimerStatsFragment extends Fragment {
+public class EventStatsFragment extends Fragment {
 
     private TextView shortestEventView;
     private TextView averageTimeView;
@@ -38,37 +38,6 @@ public class TimerStatsFragment extends Fragment {
     public void init(MainActivity app) {
         setupViews(app);
         refreshStats();
-    }
-
-    private void setupViews(MainActivity app) {
-        shortestEventView = app.findViewById(R.id.shortest_event_time);
-        averageTimeView = app.findViewById(R.id.average_time_time);
-        longestEventView = app.findViewById(R.id.longest_event_time);
-        prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-    }
-
-    private void refreshStats() {
-        List<Event> eventList = EventManager.getEvents(prefs);
-        averageTimeMillis = 0;
-        longestEventMillis = 0;
-
-        if(eventList.isEmpty()) {
-            shortestEventMillis = 0;
-        } else {
-            long currentDuration;
-            shortestEventMillis = (long) Double.POSITIVE_INFINITY;
-
-            for (Event event : eventList) {
-                currentDuration = event.getDurationMillis();
-                averageTimeMillis += currentDuration;
-                longestEventMillis = currentDuration > longestEventMillis ? currentDuration : longestEventMillis;
-                shortestEventMillis = currentDuration < shortestEventMillis ? currentDuration : shortestEventMillis;
-            }
-
-            averageTimeMillis /= eventList.size();
-        }
-
-        updateViews();
     }
 
     public void updateEventAdded() {
@@ -105,6 +74,45 @@ public class TimerStatsFragment extends Fragment {
             if(removedEventTime == longestEventMillis) {
                 recalculateLongestTime();
             }
+        }
+
+        updateViews();
+    }
+
+    public void updateClearAllEvents() {
+        averageTimeMillis = 0;
+        shortestEventMillis = 0;
+        longestEventMillis = 0;
+
+        updateViews();
+    }
+
+    private void setupViews(MainActivity app) {
+        shortestEventView = app.findViewById(R.id.shortest_event_time);
+        averageTimeView = app.findViewById(R.id.average_time_time);
+        longestEventView = app.findViewById(R.id.longest_event_time);
+        prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    private void refreshStats() {
+        List<Event> eventList = EventManager.getEvents(prefs);
+        averageTimeMillis = 0;
+        longestEventMillis = 0;
+
+        if(eventList.isEmpty()) {
+            shortestEventMillis = 0;
+        } else {
+            long currentDuration;
+            shortestEventMillis = (long) Double.POSITIVE_INFINITY;
+
+            for (Event event : eventList) {
+                currentDuration = event.getDurationMillis();
+                averageTimeMillis += currentDuration;
+                longestEventMillis = currentDuration > longestEventMillis ? currentDuration : longestEventMillis;
+                shortestEventMillis = currentDuration < shortestEventMillis ? currentDuration : shortestEventMillis;
+            }
+
+            averageTimeMillis /= eventList.size();
         }
 
         updateViews();

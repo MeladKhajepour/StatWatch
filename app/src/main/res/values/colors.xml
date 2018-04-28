@@ -2,6 +2,10 @@
 <resources>
     <color name="colorPrimary">#0277bd</color>
     <color name="colorPrimaryDark">#004c8c</color>
-    <color name="colorAccent">#69f0ae</color>
+    <color name="colorAccent">#69F0AE</color>
     <color name="selectedEventColour">#55ff1744</color>
+    <color name="startButtonColour">#69F0AE</color>
+    <color name="stopButtonColour">#FF5252</color>
+    <color name="resetButtonColour">#FF5252</color>
+    <color name="dividerSecondaryColour">#424242</color>
 </resources>

@@ -79,6 +79,11 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         notifyDataSetChanged();
     }
 
+    public void removeAllEvents() {
+        EventManager.clearAll(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE));
+        notifyDataSetChanged();
+    }
+
     public void selectView(int position, boolean value) {
         if(value) {
             selectedItemsIds.put(position, true);

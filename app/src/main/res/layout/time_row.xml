@@ -18,7 +18,9 @@
         android:layout_toStartOf="@+id/event_time"
         android:gravity="start"
         android:textAlignment="textStart"
-        android:textSize="20sp"/>
+        android:textSize="20sp"
+        android:duplicateParentState="true"
+        android:textColor="@drawable/selected_text_colour"/>
 
     <TextView
         android:id="@id/event_time"
@@ -27,6 +29,8 @@
         android:gravity="end"
         android:textAlignment="textEnd"
         android:textSize="20sp"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true"
+        android:duplicateParentState="true"
+        android:textColor="@drawable/selected_text_colour"/>
 
 </RelativeLayout>

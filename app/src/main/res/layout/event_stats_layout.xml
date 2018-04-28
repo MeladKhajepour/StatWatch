@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/dividerSecondaryColour"
+    app:layout_constraintTop_toBottomOf="@id/timer_textview"
+    app:layout_constraintBottom_toTopOf="@+id/events_list">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_marginBottom="12dp"
+        android:background="@color/colorAccent"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:baselineAligned="false">
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/shortest_event_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Shortest Event"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:layout_alignParentTop="true"/>
+
+            <TextView
+                android:id="@+id/shortest_event_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/shortest_event_label"
+                android:layout_marginTop="12dp"
+                android:textAlignment="center"
+                android:text="00:00.00"
+                android:textSize="24sp"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/average_time_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Average Time"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:layout_alignParentTop="true"/>
+
+            <TextView
+                android:id="@+id/average_time_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/average_time_label"
+                android:layout_marginTop="12dp"
+                android:text="29:59.98"
+                android:textAlignment="center"
+                android:textSize="24sp"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/longest_event_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Longest Event"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:layout_alignParentTop="true"/>
+
+            <TextView
+                android:id="@+id/longest_event_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/longest_event_label"
+                android:layout_marginTop="12dp"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:text="59:59.99"/>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="@color/dividerSecondaryColour"/>
+
+</LinearLayout>

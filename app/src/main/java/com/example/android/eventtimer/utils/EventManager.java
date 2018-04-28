@@ -35,8 +35,9 @@ public class EventManager {
         return eventList;
     }
 
-    public static Event getLastEvent() {
-        return eventList.get(eventList.size() - 1);
+    public static void clearAll(SharedPreferences prefs) {
+        eventList.clear();
+        saveEvents(prefs);
     }
 
     private static void loadEvents(SharedPreferences prefs) {

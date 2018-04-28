@@ -40,15 +40,8 @@ public class EventListFragment extends Fragment {
     }
 
     public void init(MainActivity app) {
-        setupViews(app);
-        setupHandlers(app);
-    }
-
-    private void setupViews(MainActivity app) {
         eventListView = app.findViewById(R.id.events_list);
-    }
 
-    private void setupHandlers(MainActivity app) {
         eventListAdapter = new EventListAdapter(app);
         eventListView.setAdapter(eventListAdapter);
         eventListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -127,6 +120,10 @@ public class EventListFragment extends Fragment {
 
     public void addEvent(Event event) {
         eventListAdapter.add(event);
+    }
+
+    public void removeAllEvents() {
+        eventListAdapter.removeAllEvents();
     }
 
     public interface RemoveEventListener {

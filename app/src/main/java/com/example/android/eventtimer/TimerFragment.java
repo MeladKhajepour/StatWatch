@@ -1,15 +1,15 @@
 package com.example.android.eventtimer;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.android.eventtimer.utils.Event;
@@ -19,13 +19,9 @@ import static com.example.android.eventtimer.utils.EventManager.PREFS;
 
 public class TimerFragment extends Fragment {
 
-    private final String TIMER_READY_BUTTON_LABEL = "Start";
-    private final String TIMER_STARTED_BUTTON_LABEL = "Stop";
-    private final String TIMER_STOPPED_BUTTON_LABEL = "Reset";
-
     //TODO: change the textview into a linear layout containing the h:m:s
-    private Button timerBtn;
-    private Button addBtn;
+    private FloatingActionButton timerBtn;
+    private FloatingActionButton resetBtn;
     private Timer timer;
     private AddEventListener mainActivityListener;
 
@@ -50,10 +46,18 @@ public class TimerFragment extends Fragment {
         setupHandlers();
     }
 
+    public void resetTimerLabel() {
+        timer.resetLabel();
+    }
+
+    public interface AddEventListener {
+        void onEventReceived(Event event);
+    }
+
     private void setupViews(MainActivity app) {
         TextView textView = app.findViewById(R.id.timer_textview);
         timerBtn = app.findViewById(R.id.timer_btn);
-        addBtn = app.findViewById(R.id.timer_add_btn);
+        resetBtn = app.findViewById(R.id.timer_reset_btn);
 
         timer = new Timer(textView, app.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
     }
@@ -67,69 +71,50 @@ public class TimerFragment extends Fragment {
 
                     case RESET:
                         timer.startTimer();
-                        setMainButtonLabel(TIMER_STARTED_BUTTON_LABEL);
+                        setMainButtonIcon(R.drawable.stop_icon);
+                        changeButtonColour(R.color.stopButtonColour);
                         break;
 
                     case TIMING:
                         timer.stopTimer();
-                        setMainButtonLabel(TIMER_STOPPED_BUTTON_LABEL);
-                        showAddButton();
+                        setMainButtonIcon(R.drawable.add_icon);
+                        changeButtonColour(R.color.startButtonColour);
+                        resetBtn.show();
                         break;
 
                     case STOPPED:
-                        timer.resetTimer();
-                        setMainButtonLabel(TIMER_READY_BUTTON_LABEL);
-                        hideAddButton();
+                        sendEventToActivity();
                         break;
                 }
             }
         });
 
-        addBtn.setOnClickListener(new View.OnClickListener() {
+        resetBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendEventToActivity();
+                timer.resetTimer();
+                resetButtons();
             }
         });
     }
 
     private void sendEventToActivity() {
-        setMainButtonLabel(TIMER_READY_BUTTON_LABEL);
-        hideAddButton();
+        resetButtons();
 
         mainActivityListener.onEventReceived(timer.createEvent());
     }
 
-    public interface AddEventListener {
-        void onEventReceived(Event event);
+    private void resetButtons() {
+        setMainButtonIcon(R.drawable.start_icon);
+        changeButtonColour(R.color.startButtonColour);
+        resetBtn.hide();
     }
 
-    private void setMainButtonLabel(String text) {
-        timerBtn.setText(text);
+    private void changeButtonColour(int colour) {
+        timerBtn.setBackgroundTintList(getResources().getColorStateList(colour));
     }
 
-    private void hideAddButton() {
-        addBtnVisible(false);
-    }
-
-    private void showAddButton() {
-        addBtnVisible(true);
-    }
-
-    private void addBtnVisible(boolean b) {
-        float resetBtnWeight = b ? 5 : 1;
-        float addBtnWeight = b ? 3 : 0;
-
-        timerBtn.setLayoutParams(new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                resetBtnWeight
-        ));
-        addBtn.setLayoutParams(
-                new LinearLayout.LayoutParams(
-                        0,
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        addBtnWeight
-                ));
+    private void setMainButtonIcon(int icon) {
+        timerBtn.setImageResource(icon);
     }
 }

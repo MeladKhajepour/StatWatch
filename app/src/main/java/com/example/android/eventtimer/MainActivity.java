@@ -13,7 +13,7 @@ public class MainActivity extends AppCompatActivity
         implements TimerFragment.AddEventListener, EventListFragment.RemoveEventListener {
 
     private TimerFragment timerFragment;
-    private TimerStatsFragment timerStatsFragment;
+    private EventStatsFragment eventStatsFragment;
     private EventListFragment eventListFragment;
 
     @Override
@@ -37,8 +37,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                // User chose the "Settings" item, show the app settings UI...
+            case R.id.action_clear_all:
+                eventListFragment.removeAllEvents();
+                eventStatsFragment.updateClearAllEvents();
+                timerFragment.resetTimerLabel();
                 return true;
 
             default:
@@ -52,38 +54,42 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onEventReceived(Event event) {
         eventListFragment.addEvent(event);
-        timerStatsFragment.updateEventAdded();
+        eventStatsFragment.updateEventAdded();
     }
 
     @Override
     public void onEventRemoved(long eventMillis) {
-        timerStatsFragment.updateEventRemoved(eventMillis);
+        eventStatsFragment.updateEventRemoved(eventMillis);
     }
 
     private void setupFragments() {
+        String EVENT_STATS_FRAGMENT = "timer_stats_fragment";
+        String TIMER_FRAGMENT = "timer_fragment";
+        String EVENT_LIST_FRAGMENT = "event_list_fragment";
+
         FragmentManager fm = getSupportFragmentManager();
 
-        timerFragment = (TimerFragment) fm.findFragmentByTag("timer_fragment");
-        timerStatsFragment = (TimerStatsFragment) fm.findFragmentByTag("timer_stats_fragment");
-        eventListFragment = (EventListFragment) fm.findFragmentByTag("event_list_fragment");
+        timerFragment = (TimerFragment) fm.findFragmentByTag(TIMER_FRAGMENT);
+        eventStatsFragment = (EventStatsFragment) fm.findFragmentByTag(EVENT_STATS_FRAGMENT);
+        eventListFragment = (EventListFragment) fm.findFragmentByTag(EVENT_LIST_FRAGMENT);
 
         if(timerFragment == null) {
             timerFragment = new TimerFragment();
-            fm.beginTransaction().add(timerFragment, "timer_fragment").commit();
+            fm.beginTransaction().add(timerFragment, TIMER_FRAGMENT).commit();
         }
 
-        if(timerStatsFragment == null) {
-            timerStatsFragment = new TimerStatsFragment();
-            fm.beginTransaction().add(timerStatsFragment, "timer_stats_fragment").commit();
+        if(eventStatsFragment == null) {
+            eventStatsFragment = new EventStatsFragment();
+            fm.beginTransaction().add(eventStatsFragment, EVENT_STATS_FRAGMENT).commit();
         }
 
         if(eventListFragment == null) {
             eventListFragment = new EventListFragment();
-            fm.beginTransaction().add(eventListFragment, "event_list_fragment").commit();
+            fm.beginTransaction().add(eventListFragment, EVENT_LIST_FRAGMENT).commit();
         }
 
         timerFragment.init(this);
-        timerStatsFragment.init(this);
+        eventStatsFragment.init(this);
         eventListFragment.init(this);
     }
 }

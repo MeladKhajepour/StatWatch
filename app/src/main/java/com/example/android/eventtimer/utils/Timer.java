@@ -54,10 +54,10 @@ public class Timer {
 
     public Event createEvent() {
         int label = autoIndex.incrementAndGet();
-        prefs.edit().putInt(INDEX, label).apply();
 
         Event event = new Event(label, duration);
 
+        saveIndex(label);
         resetTimer();
 
         return event;
@@ -79,6 +79,11 @@ public class Timer {
         return timerState;
     }
 
+    public void resetLabel() {
+        autoIndex.set(0);
+        saveIndex(autoIndex.get());
+    }
+
     private Runnable runnable = new Runnable() {
         public void run() {
             long currentDurationMillis = SystemClock.uptimeMillis() - startTime;
@@ -90,5 +95,9 @@ public class Timer {
         }
 
     };
+
+    private void saveIndex(int index) {
+        prefs.edit().putInt(INDEX, index).apply();
+    }
 }
 
