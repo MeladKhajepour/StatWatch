@@ -19,7 +19,7 @@ public class EventManager {
     private static List<Event> eventList;
 
     public static void addEvent(SharedPreferences prefs, Event event) {
-        eventList.add(event);
+        eventList.add(0, event);
         saveEvents(prefs);
     }
 

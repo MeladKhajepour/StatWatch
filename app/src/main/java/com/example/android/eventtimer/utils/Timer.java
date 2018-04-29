@@ -13,11 +13,11 @@ public class Timer {
 
     private long startTime;
     private long duration = 0;
-
     private TextView textView;
     private Handler handler = new Handler();
     private SharedPreferences prefs;
     private TimerState timerState;
+    private long currentDurationMillis;
     private AtomicInteger autoIndex;
 
     public Timer(TextView textView, SharedPreferences prefs) {
@@ -32,6 +32,13 @@ public class Timer {
 
     public void startTimer() {
         startTime = SystemClock.uptimeMillis();
+        handler.post(runnable);
+
+        timerState = TimerState.TIMING;
+    }
+
+    public void resumeTimer(long originalStartTime) {
+        startTime = originalStartTime;
         handler.post(runnable);
 
         timerState = TimerState.TIMING;
@@ -52,13 +59,19 @@ public class Timer {
         timerState = TimerState.RESET;
     }
 
+    public void reloadStoppedState(long lastTimerMillis) {
+        timerState = TimerState.STOPPED;
+
+        textView.setText(formatDuration(lastTimerMillis));
+        duration = lastTimerMillis;
+    }
+
     public Event createEvent() {
         int label = autoIndex.incrementAndGet();
 
         Event event = new Event(label, duration);
 
         saveIndex(label);
-        resetTimer();
 
         return event;
     }
@@ -79,14 +92,22 @@ public class Timer {
         return timerState;
     }
 
-    public void resetLabel() {
+    public void resetTimerIndex() {
         autoIndex.set(0);
         saveIndex(autoIndex.get());
     }
 
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
     private Runnable runnable = new Runnable() {
         public void run() {
-            long currentDurationMillis = SystemClock.uptimeMillis() - startTime;
+            currentDurationMillis = SystemClock.uptimeMillis() - startTime;
 
             //TODO: refactor to change the time lin-layout sub-texviews into h:m:s or m:s.ms
             //TODO: like updateTime(...)

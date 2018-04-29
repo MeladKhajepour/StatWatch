@@ -2,8 +2,9 @@ package com.example.android.eventtimer;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -19,7 +20,7 @@ import com.example.android.eventtimer.utils.Event;
 
 public class EventListFragment extends Fragment {
 
-    private ListView eventListView;
+    private ListView eventList;
     private EventListAdapter eventListAdapter;
     private RemoveEventListener mainActivityListener;
 
@@ -40,19 +41,21 @@ public class EventListFragment extends Fragment {
     }
 
     public void init(MainActivity app) {
-        eventListView = app.findViewById(R.id.events_list);
+        eventList = app.findViewById(R.id.events_list);
+        //eventList.setHasFixedSize(true);
+        //eventList.setLayoutManager(new LinearLayoutManager(app));
 
         eventListAdapter = new EventListAdapter(app);
-        eventListView.setAdapter(eventListAdapter);
-        eventListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        //eventList.setAdapter(eventListAdapter);
 
-        eventListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+        eventList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        eventList.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
 
             @Override
             public void onItemCheckedStateChanged(ActionMode mode,
                                                   int position, long id, boolean checked) {
                 // Capture total checked items
-                final int checkedCount = eventListView.getCheckedItemCount();
+                final int checkedCount = eventList.getCheckedItemCount();
                 // Set the CAB title according to total checked items
                 mode.setTitle(checkedCount + " Selected");
                 // Calls toggleSelection method from ListViewAdapter Class
@@ -100,7 +103,7 @@ public class EventListFragment extends Fragment {
             }
         });
 
-        eventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        eventList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {

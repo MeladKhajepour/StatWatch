@@ -27,6 +27,8 @@ public class MainActivity extends AppCompatActivity
         setupFragments();
     }
 
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_clear_all:
                 eventListFragment.removeAllEvents();
                 eventStatsFragment.updateClearAllEvents();
-                timerFragment.resetTimerLabel();
+                timerFragment.resetTimerIndex();
                 return true;
 
             default:
