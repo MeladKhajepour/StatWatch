@@ -9,9 +9,12 @@ public class Event {
         this.durationMillis = durationMillis;
     }
 
-    //TODO: maybe add a method to return string formatted label
-    public int getLabel() {
+    public int getLabelNumber() {
         return label;
+    }
+
+    public String getLabelText() {
+        return "Event " + String.valueOf(label);
     }
 
     public void setLabel(int label) {
@@ -20,5 +23,9 @@ public class Event {
 
     public long getDurationMillis() {
         return durationMillis;
+    }
+
+    public String getFormattedDuration() {
+        return Timer.formatDuration(durationMillis);
     }
 }

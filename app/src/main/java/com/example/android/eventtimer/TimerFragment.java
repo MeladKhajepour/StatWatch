@@ -1,62 +1,91 @@
 package com.example.android.eventtimer;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.Timer;
 import com.example.android.eventtimer.utils.TimerService;
 
-import static com.example.android.eventtimer.utils.EventManager.PREFS;
+import static com.example.android.eventtimer.utils.EventsManager.PREFS;
+
+/*
+*
+* This fragment contains the UI components related to the timer and its functionality. This fragment
+* controls TimerService based on user-selected actions for timer functionality, and sends events to
+* MainActivity if users want to add the time.
+*
+ */
 
 public class TimerFragment extends Fragment {
+    public static final String TIMER_FRAGMENT_RECEIVER = "com.example.android.eventtimer.TimerFragment";
+    public static final String START_TIMER_COMMAND = "start";
+    public static final String STOP_TIMER_COMMAND = "stop";
+    public static final String RESET_TIMER_COMMAND = "reset";
+    public static final String ADD_EVENT_COMMAND = "addEventCommand";
+    public static final String TIMER_STATE = "timerState";
+    public static final String STATE_TIMING = "stateTiming";
+    public static final String STATE_RESET = "stateReset";
+    public static final String STATE_STOPPED = "stateStopped";
+    public static final String TV_TIME = "tvTime";
+    public static final String START_TIME_MILLIS = "startTimeMillis";
 
-    private final String START_TIME_MILLIS = "startTimeMillis";
-    private final String LAST_TIME_MILLIS = "lastTimeMillis";
-    private final String IS_TIMING = "isTiming";
-    private final String IS_STOPPED = "isStopped";
-
+    private TimerService ts;
+    private boolean bound = false;
+    private Intent intent;
+    private TextView timerTv;
     private FloatingActionButton timerBtn;
     private FloatingActionButton resetBtn;
-    private Timer timer;
-    private TimerService ts;
-    private Intent intent;
+    private TimerFragmentInterface mainActivityListener;
+    private Context context;
     private SharedPreferences prefs;
-    private AddEventListener mainActivityListener;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-
-        intent = new Intent(getActivity(), TimerService.class);
-    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        this.context = context;
+        prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        intent = new Intent(context, TimerService.class);
+
         try {
-            mainActivityListener = (AddEventListener) context;
-            prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            mainActivityListener = (TimerFragmentInterface) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement AddEventListener");
+            throw new ClassCastException(context.toString() + " must implement TimerFragmentInterface");
         }
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onStart() {
+        super.onStart();
 
-        if(prefs.getBoolean(IS_TIMING, false)) {
-            resumeTimer();
-        } else if(prefs.getBoolean(IS_STOPPED, false)) {
-            loadStoppedState();
+        context.registerReceiver(updateFragmentReceiver, new IntentFilter(TIMER_FRAGMENT_RECEIVER));
+        context.startService(intent);
+
+        if(!bound) {
+            context.bindService(intent, conn, Context.BIND_AUTO_CREATE);
+            bound = true;
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        context.unregisterReceiver(updateFragmentReceiver);
+
+        if(bound) {
+            context.unbindService(conn);
+            bound = false;
         }
     }
 
@@ -65,35 +94,10 @@ public class TimerFragment extends Fragment {
         setupHandlers();
     }
 
-    public void resetTimerIndex() {
-        timer.resetTimerIndex();
-    }
-
-    public interface AddEventListener {
-        void onEventReceived(Event event);
-    }
-
-    private void resumeTimer() {
-        long originalStartTime = prefs.getLong(START_TIME_MILLIS, System.currentTimeMillis());
-
-        timer.resumeTimer(originalStartTime);
-        changeButton(R.color.stopButtonColour, R.drawable.stop_icon);
-    }
-
-    private void loadStoppedState() {
-        long lastTimerMillis = prefs.getLong(LAST_TIME_MILLIS, 0);
-        timer.reloadStoppedState(lastTimerMillis);
-
-        changeButton(R.color.startButtonColour, R.drawable.add_icon);
-        resetBtn.show();
-    }
-
     private void setupViews(MainActivity app) {
-        TextView timerTv = app.findViewById(R.id.timer_textview);
+        timerTv = app.findViewById(R.id.timer_textview);
         timerBtn = app.findViewById(R.id.timer_btn);
         resetBtn = app.findViewById(R.id.timer_reset_btn);
-
-        timer = new Timer(timerTv, app.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
     }
 
     private void setupHandlers() {
@@ -101,18 +105,19 @@ public class TimerFragment extends Fragment {
             @Override
             public void onClick(View view) {
 
-                switch (timer.getTimerState()) {
+                switch (prefs.getString(TIMER_STATE, STATE_RESET)) {
 
-                    case RESET:
-                        startTimer();
+                    case STATE_RESET:
+                        startTimerCommand();
                         break;
 
-                    case TIMING:
-                        stopTimer();
+                    case STATE_TIMING:
+                        stopTimerCommand();
                         break;
 
-                    case STOPPED:
-                        sendEventToActivity();
+                    case STATE_STOPPED:
+                        addEventCommand();
+                        resetButtons();
                         break;
                 }
             }
@@ -121,57 +126,110 @@ public class TimerFragment extends Fragment {
         resetBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                resetTimer();
+                resetTimerCommand();
+                resetButtons();
             }
         });
     }
 
-    private void startTimer() {
-        timer.startTimer();
+    /*
+     *
+     * Timer methods
+     *
+     */
 
-        changeButton(R.color.stopButtonColour, R.drawable.stop_icon);
-        prefs.edit().putBoolean(IS_TIMING, true).apply();
-        prefs.edit().putLong(START_TIME_MILLIS, timer.getStartTime()).apply();
+    private void startTimerCommand() {
+        ts.startTimerCommand();
+
+        changeTimerButton(R.color.stopButtonColour, R.drawable.stop_icon);
     }
 
-    private void stopTimer() {
-        timer.stopTimer();
+    private void stopTimerCommand() {
+        ts.stopTimerCommand();
 
-        changeButton(R.color.startButtonColour, R.drawable.add_icon);
-        prefs.edit().putBoolean(IS_TIMING, false).apply();
-        prefs.edit().putBoolean(IS_STOPPED, true).apply();
-        prefs.edit().putLong(LAST_TIME_MILLIS, timer.getDuration()).apply();
+        changeTimerButton(R.color.startButtonColour, R.drawable.add_icon);
         resetBtn.show();
     }
 
-    private void sendEventToActivity() {
-        resetButtons();
-        mainActivityListener.onEventReceived(timer.createEvent());
-
-        timer.resetTimer();
+    private void addEventCommand() {
+        ts.addEventCommand();
+        mainActivityListener.updateFragments();
     }
 
-    private void resetTimer() {
-        timer.resetTimer();
+    private void resetTimerCommand() {
+        ts.resetTimerCommand();
+    }
+
+    public void resetTimerIndex() {
+        ts.resetTimerIndexCommand();
 
         resetButtons();
     }
+
+    private void loadStoppedState() {
+        ts.reloadStoppedStateCommand();
+
+        changeTimerButton(R.color.startButtonColour, R.drawable.add_icon);
+        resetBtn.show();
+    }
+
+    private void resumeTimer() {
+        ts.resumeTimerCommand();
+
+        changeTimerButton(R.color.stopButtonColour, R.drawable.stop_icon);
+    }
+
+    /*
+     *
+     * UI methods
+     *
+     */
 
     private void resetButtons() {
-        changeButton(R.color.startButtonColour, R.drawable.start_icon);
+        changeTimerButton(R.color.startButtonColour, R.drawable.start_icon);
         resetBtn.hide();
     }
 
-    private void changeButton(int colour, int icon) {
-        setButtonColour(colour);
-        setButtonIcon(icon);
-    }
-
-    private void setButtonColour(int colour) {
+    private void changeTimerButton(int colour, int icon) {
         timerBtn.setBackgroundTintList(getResources().getColorStateList(colour));
+        timerBtn.setImageResource(icon);
     }
 
-    private void setButtonIcon(int icon) {
-        timerBtn.setImageResource(icon);
+    private BroadcastReceiver updateFragmentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            long time = intent.getLongExtra(TV_TIME, 0);
+            timerTv.setText(Timer.formatDuration(time));
+        }
+    };
+
+    private ServiceConnection conn = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            ts = ((TimerService.TimerBinder)service).getService();
+
+            switch (prefs.getString(TIMER_STATE, STATE_RESET)) {
+                case STATE_RESET:
+                    break;
+
+                case STATE_TIMING:
+                    resumeTimer();
+                    break;
+
+                case STATE_STOPPED:
+                    loadStoppedState();
+                    break;
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            ts = null;
+        }
+    };
+
+    public interface TimerFragmentInterface {
+        void updateFragments();
     }
 }

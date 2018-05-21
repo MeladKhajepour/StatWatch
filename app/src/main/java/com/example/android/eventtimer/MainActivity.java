@@ -7,14 +7,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.example.android.eventtimer.utils.Event;
+import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
 public class MainActivity extends AppCompatActivity
-        implements TimerFragment.AddEventListener, EventListFragment.RemoveEventListener {
+        implements TimerFragment.TimerFragmentInterface, EventListFragment.ListFragmentInterface {
 
     private TimerFragment timerFragment;
     private EventStatsFragment eventStatsFragment;
     private EventListFragment eventListFragment;
+    private MenuItem recalculateStatsAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,41 +28,71 @@ public class MainActivity extends AppCompatActivity
         setupFragments();
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu, menu);
+        MenuItem autoUpdate = menu.findItem(R.id.action_auto_update);
+
+        autoUpdate.setChecked(
+                getSharedPreferences(PREFS, MODE_PRIVATE)
+                        .getBoolean(EventStatsFragment.USE_LIST_STATS, false)
+        );
+
+        recalculateStatsAction = menu.findItem(R.id.action_recalculate_stats);
+
+        recalculateStatsAction.setEnabled(!autoUpdate.isChecked());
+
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch (item.getItemId()) {
+
+            case R.id.action_clear_list:
+                eventListFragment.removeAllEvents();
+                eventStatsFragment.updateViews();
+                return true;
+
+            case R.id.action_recalculate_stats:
+                eventStatsFragment.recalculateListStats();
+                return true;
+
+            case R.id.action_auto_update:
+                item.setChecked(!item.isChecked());
+                recalculateStatsAction.setEnabled(!item.isChecked());
+
+                eventStatsFragment.useListStats(item.isChecked());
+                return true;
+
             case R.id.action_clear_all:
                 eventListFragment.removeAllEvents();
-                eventStatsFragment.updateClearAllEvents();
+                eventStatsFragment.resetStats();
                 timerFragment.resetTimerIndex();
                 return true;
 
             default:
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
                 return super.onOptionsItemSelected(item);
 
         }
     }
 
     @Override
-    public void onEventReceived(Event event) {
-        eventListFragment.addEvent(event);
-        eventStatsFragment.updateEventAdded();
+    public void updateFragments() {
+        eventListFragment.refreshListView();
+        eventStatsFragment.updateViews();
     }
 
     @Override
-    public void onEventRemoved(long eventMillis) {
-        eventStatsFragment.updateEventRemoved(eventMillis);
+    public void updateStatsFragment() {
+        eventStatsFragment.updateViews();
     }
 
     private void setupFragments() {

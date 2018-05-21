@@ -5,8 +5,22 @@
     <!-- "Mark Favorite", should appear as action button if possible -->
     
     <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_clear_list"
+        android:title="Clear events list"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_recalculate_stats"
+        android:title="Recalculate list stats"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_auto_update"
+        android:title="Always use list stats"
+        android:checkable="true"
+        android:checked="false"
+        app:showAsAction="never"/>
+
     <item android:id="@+id/action_clear_all"
-        android:title="Clear all"
+        android:title="Reset"
         app:showAsAction="never"/>
 
 </menu>

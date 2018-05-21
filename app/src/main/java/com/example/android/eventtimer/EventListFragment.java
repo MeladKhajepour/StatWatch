@@ -1,28 +1,33 @@
 package com.example.android.eventtimer;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.Event;
+import com.example.android.eventtimer.utils.EventsManager;
+import com.example.android.eventtimer.utils.StatsManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
 
 public class EventListFragment extends Fragment {
 
-    private ListView eventList;
+    private ListView eventsListView;
     private EventListAdapter eventListAdapter;
-    private RemoveEventListener mainActivityListener;
+    private ListFragmentInterface mainActivityListener;
+    private SharedPreferences prefs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,53 +39,44 @@ public class EventListFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            mainActivityListener = (RemoveEventListener) context;
+            mainActivityListener = (ListFragmentInterface) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement RemoveEventListener");
+            throw new ClassCastException(context.toString() + " must implement ListFragmentInterface");
         }
+
+        prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
     public void init(MainActivity app) {
-        eventList = app.findViewById(R.id.events_list);
-        //eventList.setHasFixedSize(true);
-        //eventList.setLayoutManager(new LinearLayoutManager(app));
+        eventsListView = app.findViewById(R.id.events_list);
 
         eventListAdapter = new EventListAdapter(app);
-        //eventList.setAdapter(eventListAdapter);
-
-        eventList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-        eventList.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+        eventsListView.setAdapter(eventListAdapter);
+        eventsListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        eventsListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
 
             @Override
             public void onItemCheckedStateChanged(ActionMode mode,
                                                   int position, long id, boolean checked) {
                 // Capture total checked items
-                final int checkedCount = eventList.getCheckedItemCount();
+                final int checkedCount = eventsListView.getCheckedItemCount();
                 // Set the CAB title according to total checked items
                 mode.setTitle(checkedCount + " Selected");
                 // Calls toggleSelection method from ListViewAdapter Class
                 eventListAdapter.toggleSelection(position);
             }
 
-            @Override
+            @Override //When user selects an action from the action bar after selecting events in list
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                 switch (item.getItemId()) {
+
                     case R.id.action_delete_selected_events:
-                        // Calls getSelectedIds method from ListViewAdapter Class
-                        SparseBooleanArray selected = eventListAdapter
-                                .getSelectedIds();
-                        // Captures all selected ids with a loop
-                        for (int i = (selected.size() - 1); i >= 0; i--) {
-                            if (selected.valueAt(i)) {
-                                Event selectedEvent = eventListAdapter
-                                        .getItem(selected.keyAt(i));
-                                // Remove selected items following the ids
-                                removeEvent(selectedEvent);
-                            }
-                        }
-                        // Close CAB
+                        removeSelectedEvents(getSelectedEvents());
+                        mainActivityListener.updateStatsFragment();
+
                         mode.finish();
                         return true;
+
                     default:
                         return false;
                 }
@@ -94,7 +90,7 @@ public class EventListFragment extends Fragment {
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
-                eventListAdapter.removeSelection();
+                eventListAdapter.clearSelection();
             }
 
             @Override
@@ -102,39 +98,36 @@ public class EventListFragment extends Fragment {
                 return false;
             }
         });
-
-        eventList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-
-                final Event clickedEvent = (Event) parent.getItemAtPosition(position);
-
-                view.animate().setDuration(500).alpha(0).withEndAction(new Runnable() {
-                    @Override
-                    public void run() {
-                        removeEvent(clickedEvent);
-                        view.setAlpha(1);
-                    }
-                });
-            }
-        });
     }
 
-    public void addEvent(Event event) {
-        eventListAdapter.add(event);
+    public void refreshListView() {
+        eventListAdapter.notifyDataSetChanged();
     }
 
     public void removeAllEvents() {
-        eventListAdapter.removeAllEvents();
+        removeSelectedEvents(EventsManager.getEvents(prefs));
     }
 
-    public interface RemoveEventListener {
-        void onEventRemoved(long eventMillis);
+    private void removeSelectedEvents(List<Event> selectedEvents) {
+        EventsManager.removeSelectedEvents(prefs, selectedEvents);
+        StatsManager.updateEventsRemoved(prefs, selectedEvents);
+        refreshListView();
     }
 
-    private void removeEvent(Event event) {
-        eventListAdapter.remove(event);
-        mainActivityListener.onEventRemoved(event.getDurationMillis());
+    private List<Event> getSelectedEvents() {
+        SparseBooleanArray selected = eventListAdapter.getSelectedIds();
+        List<Event> selectedEventsList = new ArrayList<>();
+
+        for (int i = (selected.size() - 1); i >= 0; i--) {
+            if (selected.valueAt(i)) {
+                selectedEventsList.add(eventListAdapter.getItem(selected.keyAt(i)));
+            }
+        }
+
+        return selectedEventsList;
+    }
+
+    public interface ListFragmentInterface {
+        void updateStatsFragment();
     }
 }

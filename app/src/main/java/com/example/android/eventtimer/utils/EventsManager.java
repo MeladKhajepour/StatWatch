@@ -10,12 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class EventManager {
+public class EventsManager {
 
     public static final String PREFS = "prefs";
-    public static final String EVENTS = "events";
-    public static final String INDEX = "index";
 
+    private static final String EVENTS = "events";
     private static List<Event> eventList;
 
     public static void addEvent(SharedPreferences prefs, Event event) {
@@ -23,8 +22,8 @@ public class EventManager {
         saveEvents(prefs);
     }
 
-    public static void removeEvent(SharedPreferences prefs, Event event) {
-        eventList.remove(event);
+    public static void removeSelectedEvents(SharedPreferences prefs, List<Event> selectedEvents) {
+        eventList.removeAll(selectedEvents);
         saveEvents(prefs);
     }
 
@@ -35,9 +34,11 @@ public class EventManager {
         return eventList;
     }
 
-    public static void clearAll(SharedPreferences prefs) {
-        eventList.clear();
-        saveEvents(prefs);
+    public static int getEventListSize(SharedPreferences prefs) {
+        if(eventList == null) {
+            loadEvents(prefs);
+        }
+        return eventList.size();
     }
 
     private static void loadEvents(SharedPreferences prefs) {

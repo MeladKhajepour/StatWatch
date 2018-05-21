@@ -12,16 +12,16 @@ import android.widget.TextView;
 import com.example.android.eventtimer.MainActivity;
 import com.example.android.eventtimer.R;
 
-import static com.example.android.eventtimer.utils.EventManager.PREFS;
+import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private SparseBooleanArray selectedItemsIds;
+    private SparseBooleanArray selectedEventIds;
 
     public EventListAdapter(MainActivity app) {
-        super(app.getBaseContext(), R.layout.time_row, EventManager.getEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
-        selectedItemsIds = new SparseBooleanArray();
+        super(app.getBaseContext(), R.layout.time_row, EventsManager.getEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
+        selectedEventIds = new SparseBooleanArray();
     }
 
     private class ViewHolder {
@@ -50,50 +50,33 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        String label = "Time " + String.valueOf(event.getLabel());
-
-        viewHolder.label.setText(label);
-        //TODO: add method to event obj to return formatted text of time instead of using timer
+        viewHolder.label.setText(event.getLabelText());
+        //TODO: add method to event obj to return formatted text of time instead of using timer (done)
         //TODO: think more about ^ after refactoring the counter into a linear layout with h:m:s
-        viewHolder.time.setText(Timer.formatDuration(event.getDurationMillis()));
+        viewHolder.time.setText(event.getFormattedDuration());
 
         return convertView;
     }
 
     public void toggleSelection(int position) {
-        selectView(position, !selectedItemsIds.get(position));
+        selectEvent(position, !selectedEventIds.get(position));
     }
 
-    public void remove(Event event) {
-        EventManager.removeEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
+    public void clearSelection() {
+        selectedEventIds = new SparseBooleanArray();
         notifyDataSetChanged();
     }
 
-    public void add(Event event) {
-        EventManager.addEvent(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE), event);
-        notifyDataSetChanged();
-    }
-
-    public void removeSelection() {
-        selectedItemsIds = new SparseBooleanArray();
-        notifyDataSetChanged();
-    }
-
-    public void removeAllEvents() {
-        EventManager.clearAll(getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE));
-        notifyDataSetChanged();
-    }
-
-    public void selectView(int position, boolean value) {
-        if(value) {
-            selectedItemsIds.put(position, true);
+    private void selectEvent(int position, boolean selected) {
+        if(selected) {
+            selectedEventIds.put(position, true);
         } else {
-            selectedItemsIds.delete(position);
+            selectedEventIds.delete(position);
         }
         notifyDataSetChanged();
     }
 
     public SparseBooleanArray getSelectedIds() {
-        return selectedItemsIds;
+        return selectedEventIds;
     }
 }

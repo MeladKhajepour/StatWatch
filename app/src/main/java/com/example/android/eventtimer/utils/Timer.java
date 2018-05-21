@@ -3,75 +3,72 @@ package com.example.android.eventtimer.utils;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.widget.TextView;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.example.android.eventtimer.utils.EventManager.INDEX;
+import static com.example.android.eventtimer.TimerFragment.START_TIME_MILLIS;
+import static com.example.android.eventtimer.TimerFragment.STATE_RESET;
+import static com.example.android.eventtimer.TimerFragment.STATE_STOPPED;
+import static com.example.android.eventtimer.TimerFragment.STATE_TIMING;
+import static com.example.android.eventtimer.TimerFragment.TIMER_STATE;
 
 public class Timer {
-    public enum TimerState {TIMING, STOPPED, RESET}
 
+    private static final String LAST_SAVED_TIME = "lastSavedTime";
+    private static final String LAST_SAVED_INDEX = "index";
     private long startTime;
-    private long duration = 0;
-    private TextView textView;
+    private long elapsedTime = 0;
     private Handler handler = new Handler();
     private SharedPreferences prefs;
-    private TimerState timerState;
-    private long currentDurationMillis;
-    private AtomicInteger autoIndex;
+    private static AtomicInteger autoIndex;
 
-    public Timer(TextView textView, SharedPreferences prefs) {
-        this.textView = textView;
+    public Timer(SharedPreferences prefs) {
         this.prefs = prefs;
 
-        int lastSavedIndex = prefs.getInt(INDEX, 0);
-        autoIndex = new AtomicInteger(lastSavedIndex);
-
-        timerState = TimerState.RESET;
+        autoIndex = new AtomicInteger(prefs.getInt(LAST_SAVED_INDEX, 0));
     }
 
     public void startTimer() {
         startTime = SystemClock.uptimeMillis();
+        prefs.edit().putLong(START_TIME_MILLIS, startTime).apply();
         handler.post(runnable);
 
-        timerState = TimerState.TIMING;
+        setTimerState(prefs, STATE_TIMING);
+        saveLastTime();
     }
 
-    public void resumeTimer(long originalStartTime) {
-        startTime = originalStartTime;
+    public void resumeTimer() {
+        startTime = prefs.getLong(START_TIME_MILLIS, SystemClock.uptimeMillis());
         handler.post(runnable);
-
-        timerState = TimerState.TIMING;
     }
 
     public void stopTimer() {
-        duration = SystemClock.uptimeMillis() - startTime;
         handler.removeCallbacks(runnable);
 
-        timerState = TimerState.STOPPED;
+        setTimerState(prefs, STATE_STOPPED);
+        saveLastTime();
     }
 
     public void resetTimer() {
-        duration = 0;
+        handler.removeCallbacks(runnable);
+        elapsedTime = 0;
 
-        textView.setText("0:00.00");
-
-        timerState = TimerState.RESET;
+        setTimerState(prefs, STATE_RESET);
+        saveLastTime();
     }
 
-    public void reloadStoppedState(long lastTimerMillis) {
-        timerState = TimerState.STOPPED;
+    public long reloadStopState() {
+        setTimerState(prefs, STATE_STOPPED);
 
-        textView.setText(formatDuration(lastTimerMillis));
-        duration = lastTimerMillis;
+        elapsedTime = prefs.getLong(LAST_SAVED_TIME, 0);
+
+        return elapsedTime;
     }
 
     public Event createEvent() {
-        int label = autoIndex.incrementAndGet();
+        Event event = new Event(autoIndex.incrementAndGet(), elapsedTime);
 
-        Event event = new Event(label, duration);
-
-        saveIndex(label);
+        saveIndex();
 
         return event;
     }
@@ -88,37 +85,47 @@ public class Timer {
         return time;
     }
 
-    public TimerState getTimerState() {
-        return timerState;
+    public static String formatNotificationDuration(long durationMillis) {
+        long curDurationSeconds = durationMillis / 1000L;
+
+        int minutes = (int) (curDurationSeconds / 60L);
+        int seconds = (int) (curDurationSeconds % 60);
+
+        String time = String.format("%d:%02d", minutes, seconds);
+        return time;
     }
 
     public void resetTimerIndex() {
         autoIndex.set(0);
-        saveIndex(autoIndex.get());
+        saveIndex();
     }
 
-    public long getStartTime() {
-        return startTime;
+    public long getElapsedTime() {
+        return elapsedTime;
     }
 
-    public long getDuration() {
-        return duration;
+    public static String getTimerState(SharedPreferences prefs) {
+        return prefs.getString(TIMER_STATE, STATE_RESET);
+    }
+
+    public static void setTimerState(SharedPreferences prefs, String state) {
+        prefs.edit().putString(TIMER_STATE, state).apply();
     }
 
     private Runnable runnable = new Runnable() {
         public void run() {
-            currentDurationMillis = SystemClock.uptimeMillis() - startTime;
-
-            //TODO: refactor to change the time lin-layout sub-texviews into h:m:s or m:s.ms
-            //TODO: like updateTime(...)
-            textView.setText(formatDuration(currentDurationMillis));
-            handler.post(this);
+            elapsedTime = SystemClock.uptimeMillis() - startTime;
+            handler.postDelayed(this, 10);
         }
 
     };
 
-    private void saveIndex(int index) {
-        prefs.edit().putInt(INDEX, index).apply();
+    private void saveLastTime() {
+        prefs.edit().putLong(LAST_SAVED_TIME, elapsedTime).apply();
+    }
+
+    private void saveIndex() {
+        prefs.edit().putInt(LAST_SAVED_INDEX, autoIndex.get()).apply();
     }
 }
 
