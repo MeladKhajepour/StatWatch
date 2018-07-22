@@ -19,7 +19,7 @@
         android:checked="false"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/action_clear_all"
+    <item android:id="@+id/action_reset_all"
         android:title="Reset"
         app:showAsAction="never"/>
 

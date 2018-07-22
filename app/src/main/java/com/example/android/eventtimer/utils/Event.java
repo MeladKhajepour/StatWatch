@@ -9,16 +9,8 @@ public class Event {
         this.durationMillis = durationMillis;
     }
 
-    public int getLabelNumber() {
-        return label;
-    }
-
     public String getLabelText() {
         return "Event " + String.valueOf(label);
-    }
-
-    public void setLabel(int label) {
-        this.label = label;
     }
 
     public long getDurationMillis() {

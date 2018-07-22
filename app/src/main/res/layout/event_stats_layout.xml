@@ -1,109 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/dividerSecondaryColour"
-    app:layout_constraintTop_toBottomOf="@id/timer_textview"
-    app:layout_constraintBottom_toTopOf="@+id/events_list">
+    xmlns:tool="http://schemas.android.com/tools">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginBottom="12dp"
-        android:background="@color/colorAccent"/>
+    <data>
+        <variable
+            name="es"
+            type="com.example.android.eventtimer.utils.ExpandStats"/>
+    </data>
 
     <LinearLayout
+        android:id="@+id/stats"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:baselineAligned="false">
+        android:background="@color/timerBackground"
+        app:layout_constraintTop_toBottomOf="@id/timer_textview"
+        app:layout_constraintBottom_toTopOf="@+id/events_list">
 
-        <RelativeLayout
-            android:layout_width="0dp"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@color/colorAccent"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="28dp"
+            android:baselineAligned="false">
 
-            <TextView
-                android:id="@+id/shortest_event_label"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Shortest Event"
-                android:textSize="18sp"
-                android:textAlignment="center"
-                android:layout_alignParentTop="true"/>
+                android:layout_weight="1">
 
-            <TextView
-                android:id="@+id/shortest_event_time"
-                android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/shortest_event_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Shortest Event"
+                    android:textAlignment="center"
+                    style="@style/TitleText"/>
+
+                <TextView
+                    android:id="@+id/shortest_event_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stats_margin_top"
+                    android:textAlignment="center"
+                    tool:text="00:00.0"
+                    style="@style/StatValue"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/shortest_event_label"
-                android:layout_marginTop="12dp"
-                android:textAlignment="center"
-                android:text="00:00.00"
-                android:textSize="24sp"/>
+                android:layout_weight="1">
 
-        </RelativeLayout>
+                <TextView
+                    android:id="@+id/average_time_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Average Time"
+                    android:textAlignment="center"
+                    style="@style/TitleText"/>
 
-        <RelativeLayout
-            android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/average_time_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stats_margin_top"
+                    android:textAlignment="center"
+                    tool:text="00:00.0"
+                    style="@style/StatValue"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/longest_event_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Longest Event"
+                    android:textAlignment="center"
+                    style="@style/TitleText"/>
+
+                <TextView
+                    android:id="@+id/longest_event_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stats_margin_top"
+                    android:textAlignment="center"
+                    tool:text="00:00.0"
+                    style="@style/StatValue"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/expanded_stats"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:layout_marginBottom="28dp"
+            android:baselineAligned="false">
 
-            <TextView
-                android:id="@+id/average_time_label"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Average Time"
-                android:textSize="18sp"
-                android:textAlignment="center"
-                android:layout_alignParentTop="true"/>
+                android:layout_weight="1">
 
-            <TextView
-                android:id="@+id/average_time_time"
-                android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/std_dev_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Standard Deviation"
+                    android:textAlignment="center"
+                    style="@style/TitleText"/>
+
+                <TextView
+                    android:id="@+id/std_dev_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stats_margin_top"
+                    android:textAlignment="center"
+                    tool:text="00:00.0"
+                    style="@style/StatValue"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/average_time_label"
-                android:layout_marginTop="12dp"
-                android:text="29:59.98"
-                android:textAlignment="center"
-                android:textSize="24sp"/>
+                android:layout_weight="1">
 
-        </RelativeLayout>
+                <TextView
+                    android:id="@+id/margin_of_error_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Margin of Error"
+                    android:textAlignment="center"
+                    style="@style/TitleText"/>
 
-        <RelativeLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+                <TextView
+                    android:id="@+id/margin_of_error_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stats_margin_top"
+                    android:textAlignment="center"
+                    tool:text="00:00.0"
+                    style="@style/StatValue"/>
 
-            <TextView
-                android:id="@+id/longest_event_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Longest Event"
-                android:textSize="18sp"
-                android:textAlignment="center"
-                android:layout_alignParentTop="true"/>
-
-            <TextView
-                android:id="@+id/longest_event_time"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/longest_event_label"
-                android:layout_marginTop="12dp"
-                android:textAlignment="center"
-                android:textSize="24sp"
-                android:text="59:59.99"/>
-
-        </RelativeLayout>
-
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:background="@color/dividerSecondaryColour"/>
-
-</LinearLayout>
+</layout>

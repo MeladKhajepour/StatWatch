@@ -2,14 +2,19 @@ package com.example.android.eventtimer.utils;
 
 import android.content.SharedPreferences;
 
+import org.apache.commons.math3.distribution.TDistribution;
+
 import java.util.List;
 
 import static com.example.android.eventtimer.EventStatsFragment.useListStats;
 
 public class StatsManager {
-    public static final String SHORTEST_EVENT = "shortestEvent";
-    public static final String AVERAGE_TIME = "averageTime";
-    public static final String LONGEST_EVENT = "longestEvent";
+    private static final String SHORTEST_EVENT = "shortestEvent";
+    private static final String AVERAGE_TIME = "averageTime";
+    private static final String LONGEST_EVENT = "longestEvent";
+    private static final String STD_DEV = "stdDev";
+    private static final String MOE = "moe";
+    private static final String CONFIDENCE = "confidence";
 
     public static void updateEventAdded(SharedPreferences prefs, Event event) {
         int eventListSize = EventsManager.getEventListSize(prefs);
@@ -31,38 +36,48 @@ public class StatsManager {
             setAverageTime(prefs, averageTimeMillis);
             setLongestEvent(prefs, longestEventMillis);
         }
+
+        calculateAndSetStdDev(prefs);
+        calculateAndSetMoe(prefs);
+    }
+
+    public static void undoRemoveEvents(SharedPreferences prefs, List<Event> eventList) {
+        if(useListStats) {
+            recalculateListStats(prefs);
+        }
     }
 
     public static void updateEventsRemoved(SharedPreferences prefs, List<Event> removedEventsList) {
         if(useListStats) {
-            int numEventsInList = EventsManager.getEventListSize(prefs);
+            int eventListSize = EventsManager.getEventListSize(prefs);
 
-            if(numEventsInList == 0) {
-                StatsManager.setShortestEvent(prefs, 0);
-                StatsManager.setAverageTime(prefs, 0);
-                StatsManager.setLongestEvent(prefs, 0);
-            } else if(numEventsInList ==1) {
-                updateSingleEvent(prefs, EventsManager.getEvents(prefs).get(0).getDurationMillis());
+            if(eventListSize == 0) {
+                setShortestEvent(prefs, 0); // todo
+                setAverageTime(prefs, 0); // todo
+                setLongestEvent(prefs, 0);
+            } else if(eventListSize == 1) {
+                updateSingleEvent(prefs, EventsManager.getAllEvents(prefs).get(0).getDurationMillis());
             } else {
                 long totalRemovedTime = 0;
-                long averageTimeMillis = StatsManager.getAverageTime(prefs);
+                long averageTimeMillis = getAverageTime(prefs);
                 boolean updateLongest = false;
                 boolean updateShortest = false;
+
                 for(Event removedEvent : removedEventsList) {
                     long removedTime = removedEvent.getDurationMillis();
 
                     totalRemovedTime += removedTime;
 
-                    if(removedTime == StatsManager.getShortestEvent(prefs)) {
+                    if(removedTime == getShortestEvent(prefs)) {
                         updateShortest = true;
                     }
 
-                    if(removedTime == StatsManager.getLongestEvent(prefs)) {
+                    if(removedTime == getLongestEvent(prefs)) {
                         updateLongest = true;
                     }
                 }
 
-                averageTimeMillis = (averageTimeMillis * (numEventsInList + removedEventsList.size()) - totalRemovedTime) / numEventsInList;
+                averageTimeMillis = (averageTimeMillis * (eventListSize + removedEventsList.size()) - totalRemovedTime) / eventListSize;
 
                 if(updateShortest) {
                     recalculateShortestTime(prefs);
@@ -72,20 +87,21 @@ public class StatsManager {
                     recalculateLongestTime(prefs);
                 }
 
-                StatsManager.setAverageTime(prefs, averageTimeMillis);
+                setAverageTime(prefs, averageTimeMillis);
             }
+
+            calculateAndSetStdDev(prefs);
+            calculateAndSetMoe(prefs);
         }
     }
 
     public static void recalculateListStats(SharedPreferences prefs) {
-        List<Event> eventList = EventsManager.getEvents(prefs);
+        List<Event> eventList = EventsManager.getAllEvents(prefs);
         long averageTimeMillis = 0;
         long longestEventMillis = 0;
         long shortestEventMillis = (long) Double.POSITIVE_INFINITY;
 
-        if(eventList.isEmpty()) {
-            shortestEventMillis = 0;
-        } else {
+        if(!eventList.isEmpty()) {
             long currentDuration;
 
             for (Event event : eventList) {
@@ -101,12 +117,14 @@ public class StatsManager {
         setShortestEvent(prefs, shortestEventMillis);
         setAverageTime(prefs, averageTimeMillis);
         setLongestEvent(prefs, longestEventMillis);
+        calculateAndSetStdDev(prefs);
+        calculateAndSetMoe(prefs);
     }
 
     private static void recalculateShortestTime(SharedPreferences prefs) {
         long shortestEventMillis = (long) Double.POSITIVE_INFINITY;
 
-        for(Event event : EventsManager.getEvents(prefs)) {
+        for(Event event : EventsManager.getAllEvents(prefs)) {
             shortestEventMillis = event.getDurationMillis() < shortestEventMillis ?
                     event.getDurationMillis() : shortestEventMillis;
         }
@@ -117,7 +135,7 @@ public class StatsManager {
     private static void recalculateLongestTime(SharedPreferences prefs) {
         long longestEventMillis = 0;
 
-        for(Event event : EventsManager.getEvents(prefs)) {
+        for(Event event : EventsManager.getAllEvents(prefs)) {
             longestEventMillis = event.getDurationMillis() > longestEventMillis ?
                     event.getDurationMillis() : longestEventMillis;
         }
@@ -126,9 +144,9 @@ public class StatsManager {
     }
 
     private static void updateSingleEvent(SharedPreferences prefs, long time) {
-        StatsManager.setShortestEvent(prefs, time);
-        StatsManager.setAverageTime(prefs, time);
-        StatsManager.setLongestEvent(prefs, time);
+        setShortestEvent(prefs, time);
+        setAverageTime(prefs, time);
+        setLongestEvent(prefs, time);
     }
 
     public static void setShortestEvent(SharedPreferences prefs, long time) {
@@ -143,6 +161,42 @@ public class StatsManager {
         prefs.edit().putLong(LONGEST_EVENT, time).apply();
     }
 
+    private static void calculateAndSetStdDev(SharedPreferences prefs) {
+        long time = 0;
+        List<Event> eventList = EventsManager.getAllEvents(prefs);
+
+        if(eventList.size() > 1) {
+            long mean = getAverageTime(prefs);
+            long variance = 0;
+
+            for(Event event : eventList) {
+                variance += Math.pow((event.getDurationMillis() - mean), 2);
+            }
+
+            time = (long) Math.sqrt(variance/(eventList.size() - 1));
+        }
+
+        prefs.edit().putLong(STD_DEV, time).apply();
+    }
+
+    private static void calculateAndSetMoe(SharedPreferences prefs) {
+        int n = EventsManager.getEventListSize(prefs);
+
+        if(n == 1) {
+            return;
+        }
+
+        int df = n - 1;
+        double conf = prefs.getFloat(CONFIDENCE, 0.1f);
+        double p = 1 - conf;
+
+        TDistribution dist = new TDistribution(df);
+        float t = (float) dist.inverseCumulativeProbability(p);
+        float moe = (float) (getStdDev(prefs) / Math.sqrt(n)) * t;
+
+        prefs.edit().putFloat(MOE, moe).apply();
+    }
+
     public static long getShortestEvent(SharedPreferences prefs) {
         return prefs.getLong(SHORTEST_EVENT, 0);
     }
@@ -153,5 +207,13 @@ public class StatsManager {
 
     public static long getLongestEvent(SharedPreferences prefs) {
         return prefs.getLong(LONGEST_EVENT, 0);
+    }
+
+    public static long getStdDev(SharedPreferences prefs) {
+        return prefs.getLong(STD_DEV, 0);
+    }
+
+    public static long getmoe(SharedPreferences prefs) {
+        return (long) prefs.getFloat(MOE, 0);
     }
 }
