@@ -20,10 +20,10 @@ import com.example.android.eventtimer.R;
 
 import static com.example.android.eventtimer.TimerFragment.ADD_EVENT_COMMAND;
 import static com.example.android.eventtimer.TimerFragment.TV_TIME;
-import static com.example.android.eventtimer.TimerFragment.STATE_RESET;
-import static com.example.android.eventtimer.TimerFragment.STATE_TIMING;
+import static com.example.android.eventtimer.TimerFragment.RESET_STATE;
+import static com.example.android.eventtimer.TimerFragment.TIMING_STATE;
 import static com.example.android.eventtimer.TimerFragment.TIMER_FRAGMENT_RECEIVER;
-import static com.example.android.eventtimer.TimerFragment.STATE_STOPPED;
+import static com.example.android.eventtimer.TimerFragment.STOPPED_STATE;
 import static com.example.android.eventtimer.TimerFragment.RESET_TIMER_COMMAND;
 import static com.example.android.eventtimer.TimerFragment.START_TIMER_COMMAND;
 import static com.example.android.eventtimer.TimerFragment.STOP_TIMER_COMMAND;
@@ -170,20 +170,20 @@ public class TimerService extends Service {
                 .setContentIntent(pendingIntent)
                 .setOnlyAlertOnce(true);
 
-        if(Timer.getTimerState(prefs).equals(STATE_RESET)) {
+        if(Timer.getTimerState(prefs).equals(RESET_STATE)) {
             mBuilder.addAction(R.drawable.start_icon, "Start timer", startTimerAction());
         }
 
-        if(prefs.getString(TIMER_STATE, STATE_STOPPED).equals(STATE_STOPPED)
-                || prefs.getString(TIMER_STATE, STATE_TIMING).equals(STATE_TIMING)) {
+        if(prefs.getString(TIMER_STATE, STOPPED_STATE).equals(STOPPED_STATE)
+                || prefs.getString(TIMER_STATE, TIMING_STATE).equals(TIMING_STATE)) {
             mBuilder.addAction(R.drawable.reset_icon, "Reset timer", resetTimerAction());
         }
 
-        if(prefs.getString(TIMER_STATE, STATE_TIMING).equals(STATE_TIMING)) {
+        if(prefs.getString(TIMER_STATE, TIMING_STATE).equals(TIMING_STATE)) {
             mBuilder.addAction(R.drawable.stop_icon, "Stop timer", stopTimerAction());
         }
 
-        if(prefs.getString(TIMER_STATE, STATE_STOPPED).equals(STATE_STOPPED)) {
+        if(prefs.getString(TIMER_STATE, STOPPED_STATE).equals(STOPPED_STATE)) {
             mBuilder.addAction(R.drawable.add_icon, "Add event", addEventAction());
         }
 
@@ -232,7 +232,7 @@ public class TimerService extends Service {
                     break;
 
                 case ADD_EVENT_COMMAND:
-                    Timer.setTimerState(prefs, STATE_RESET);
+                    Timer.setTimerState(prefs, RESET_STATE);
                     notificationManager.notify(notificationId, buildNotification("Time of " +
                             Timer.formatDuration(timer.getElapsedTime()) + " has been added").build());
 
@@ -265,7 +265,7 @@ public class TimerService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
 
-        if(prefs.getString(TIMER_STATE, STATE_TIMING).equals(STATE_TIMING)) {
+        if(prefs.getString(TIMER_STATE, TIMING_STATE).equals(TIMING_STATE)) {
             handler.post(startNotifications);
             handler.removeCallbacks(autoRefreshFragment);
         }

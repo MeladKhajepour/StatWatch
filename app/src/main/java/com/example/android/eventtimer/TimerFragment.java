@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.example.android.eventtimer.utils.Timer;
 import com.example.android.eventtimer.utils.TimerService;
+import com.example.android.eventtimer.utils.UpdateUIListener;
 
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
@@ -33,9 +34,9 @@ public class TimerFragment extends Fragment {
     public static final String RESET_TIMER_COMMAND = "reset";
     public static final String ADD_EVENT_COMMAND = "addEventCommand";
     public static final String TIMER_STATE = "timerState";
-    public static final String STATE_TIMING = "stateTiming";
-    public static final String STATE_RESET = "stateReset";
-    public static final String STATE_STOPPED = "stateStopped";
+    public static final String TIMING_STATE = "stateTiming";
+    public static final String RESET_STATE = "stateReset";
+    public static final String STOPPED_STATE = "stateStopped";
     public static final String TV_TIME = "tvTime";
     public static final String START_TIME_MILLIS = "startTimeMillis";
 
@@ -43,9 +44,9 @@ public class TimerFragment extends Fragment {
     private boolean bound = false;
     private Intent intent;
     private TextView timerTv;
-    private FloatingActionButton timerBtn;
+    private FloatingActionButton mainBtn;
     private FloatingActionButton resetBtn;
-    private TimerFragmentInterface mainActivityListener;
+    private UpdateUIListener mainActivityListener;
     private Context context;
     private SharedPreferences prefs;
 
@@ -58,7 +59,7 @@ public class TimerFragment extends Fragment {
         intent = new Intent(context, TimerService.class);
 
         try {
-            mainActivityListener = (TimerFragmentInterface) context;
+            mainActivityListener = (UpdateUIListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement TimerFragmentInterface");
         }
@@ -96,26 +97,26 @@ public class TimerFragment extends Fragment {
 
     private void setupViews(MainActivity app) {
         timerTv = app.findViewById(R.id.timer_textview);
-        timerBtn = app.findViewById(R.id.timer_btn);
+        mainBtn = app.findViewById(R.id.timer_btn);
         resetBtn = app.findViewById(R.id.timer_reset_btn);
     }
 
     private void setupHandlers() {
-        timerBtn.setOnClickListener(new View.OnClickListener() {
+        mainBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                switch (prefs.getString(TIMER_STATE, STATE_RESET)) {
+                switch (prefs.getString(TIMER_STATE, RESET_STATE)) {
 
-                    case STATE_RESET:
+                    case RESET_STATE:
                         startTimerCommand();
                         break;
 
-                    case STATE_TIMING:
+                    case TIMING_STATE:
                         stopTimerCommand();
                         break;
 
-                    case STATE_STOPPED:
+                    case STOPPED_STATE:
                         addEventCommand();
                         resetButtons();
                         break;
@@ -153,7 +154,8 @@ public class TimerFragment extends Fragment {
 
     private void addEventCommand() {
         ts.addEventCommand();
-        mainActivityListener.updateFragments();
+        mainActivityListener.updateListFragment();
+        mainActivityListener.updateStatsFragment();
     }
 
     private void resetTimerCommand() {
@@ -191,8 +193,8 @@ public class TimerFragment extends Fragment {
     }
 
     private void changeTimerButton(int colour, int icon) {
-        timerBtn.setBackgroundTintList(getResources().getColorStateList(colour));
-        timerBtn.setImageResource(icon);
+        mainBtn.setBackgroundTintList(getResources().getColorStateList(colour));
+        mainBtn.setImageResource(icon);
     }
 
     private BroadcastReceiver updateFragmentReceiver = new BroadcastReceiver() {
@@ -209,15 +211,15 @@ public class TimerFragment extends Fragment {
         public void onServiceConnected(ComponentName className, IBinder service) {
             ts = ((TimerService.TimerBinder)service).getService();
 
-            switch (prefs.getString(TIMER_STATE, STATE_RESET)) {
-                case STATE_RESET:
+            switch (prefs.getString(TIMER_STATE, RESET_STATE)) {
+                case RESET_STATE:
                     break;
 
-                case STATE_TIMING:
+                case TIMING_STATE:
                     resumeTimer();
                     break;
 
-                case STATE_STOPPED:
+                case STOPPED_STATE:
                     loadStoppedState();
                     break;
             }
@@ -228,8 +230,4 @@ public class TimerFragment extends Fragment {
             ts = null;
         }
     };
-
-    public interface TimerFragmentInterface {
-        void updateFragments();
-    }
 }

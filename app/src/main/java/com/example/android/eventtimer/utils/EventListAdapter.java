@@ -20,7 +20,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     private SparseBooleanArray selectedEventIds;
 
     public EventListAdapter(MainActivity app) {
-        super(app.getBaseContext(), R.layout.time_row, EventsManager.getEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
+        super(app.getBaseContext(), R.layout.time_row, EventsManager.getAllEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
         selectedEventIds = new SparseBooleanArray();
     }
 

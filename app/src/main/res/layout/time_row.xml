@@ -20,7 +20,8 @@
         android:textAlignment="textStart"
         android:textSize="20sp"
         android:duplicateParentState="true"
-        android:textColor="@drawable/selected_text_colour"/>
+        android:textColor="@drawable/selected_text_colour"
+        style="@style/TitleText"/>
 
     <TextView
         android:id="@id/event_time"

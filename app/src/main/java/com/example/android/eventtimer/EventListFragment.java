@@ -3,11 +3,14 @@ package com.example.android.eventtimer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
@@ -15,6 +18,7 @@ import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.EventsManager;
 import com.example.android.eventtimer.utils.StatsManager;
+import com.example.android.eventtimer.utils.UpdateUIListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +29,13 @@ import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 public class EventListFragment extends Fragment {
 
     private ListView eventsListView;
+    private FloatingActionButton mainBtn;
+    private FloatingActionButton resetBtn;
+    private List<Event> removedEvents;
+    private int numRemovedEvents;
+
     private EventListAdapter eventListAdapter;
-    private ListFragmentInterface mainActivityListener;
+    private UpdateUIListener mainActivityListener;
     private SharedPreferences prefs;
 
     @Override
@@ -39,7 +48,7 @@ public class EventListFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            mainActivityListener = (ListFragmentInterface) context;
+            mainActivityListener = (UpdateUIListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement ListFragmentInterface");
         }
@@ -49,6 +58,8 @@ public class EventListFragment extends Fragment {
 
     public void init(MainActivity app) {
         eventsListView = app.findViewById(R.id.events_list);
+        mainBtn = app.findViewById(R.id.timer_btn);
+        resetBtn = app.findViewById(R.id.timer_reset_btn);
 
         eventListAdapter = new EventListAdapter(app);
         eventsListView.setAdapter(eventListAdapter);
@@ -61,7 +72,13 @@ public class EventListFragment extends Fragment {
                 // Capture total checked items
                 final int checkedCount = eventsListView.getCheckedItemCount();
                 // Set the CAB title according to total checked items
-                mode.setTitle(checkedCount + " Selected");
+                String event = " event";
+
+                if(checkedCount != 1) {
+                    event = " events";
+                }
+
+                mode.setTitle(checkedCount + event + " selected");
                 // Calls toggleSelection method from ListViewAdapter Class
                 eventListAdapter.toggleSelection(position);
             }
@@ -72,7 +89,6 @@ public class EventListFragment extends Fragment {
 
                     case R.id.action_delete_selected_events:
                         removeSelectedEvents(getSelectedEvents());
-                        mainActivityListener.updateStatsFragment();
 
                         mode.finish();
                         return true;
@@ -100,18 +116,28 @@ public class EventListFragment extends Fragment {
         });
     }
 
-    public void refreshListView() {
+    public void refreshEventList() {
         eventListAdapter.notifyDataSetChanged();
     }
 
     public void removeAllEvents() {
-        removeSelectedEvents(EventsManager.getEvents(prefs));
+        List<Event> eventList = EventsManager.getAllEvents(prefs);
+
+        removeSelectedEvents(eventList);
     }
 
     private void removeSelectedEvents(List<Event> selectedEvents) {
-        EventsManager.removeSelectedEvents(prefs, selectedEvents);
-        StatsManager.updateEventsRemoved(prefs, selectedEvents);
-        refreshListView();
+        removedEvents = new ArrayList<>(selectedEvents);
+        numRemovedEvents = removedEvents.size();
+
+        EventsManager.removeSelectedEvents(prefs, removedEvents);
+        StatsManager.updateEventsRemoved(prefs, removedEvents);
+        refreshEventList();
+        mainActivityListener.updateStatsFragment();
+
+        showUndoSnackbar(eventListAdapter.getSelectedIds());
+
+        eventListAdapter.clearSelection();
     }
 
     private List<Event> getSelectedEvents() {
@@ -127,7 +153,30 @@ public class EventListFragment extends Fragment {
         return selectedEventsList;
     }
 
-    public interface ListFragmentInterface {
-        void updateStatsFragment();
+    private void showUndoSnackbar(SparseBooleanArray selectedEventIndices) {
+        final SparseBooleanArray indices = selectedEventIndices.clone();
+
+        String text = numRemovedEvents + " events removed";
+
+        if(numRemovedEvents == 1) {
+            text = numRemovedEvents + " event removed";
+        }
+
+        Snackbar snackbar = Snackbar.make(eventsListView, text, Snackbar.LENGTH_LONG);
+
+        snackbar.setAction("Undo", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                undoRemoveEvents(indices);
+            }
+        });
+        snackbar.show();
+    }
+
+    private void undoRemoveEvents(SparseBooleanArray removedEventIndices) {
+        EventsManager.undoRemoveEvents(prefs, removedEvents, removedEventIndices);
+        StatsManager.undoRemoveEvents(prefs, removedEvents);
+        refreshEventList();
+        mainActivityListener.updateStatsFragment();
     }
 }

@@ -7,9 +7,9 @@ import android.os.SystemClock;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.example.android.eventtimer.TimerFragment.START_TIME_MILLIS;
-import static com.example.android.eventtimer.TimerFragment.STATE_RESET;
-import static com.example.android.eventtimer.TimerFragment.STATE_STOPPED;
-import static com.example.android.eventtimer.TimerFragment.STATE_TIMING;
+import static com.example.android.eventtimer.TimerFragment.RESET_STATE;
+import static com.example.android.eventtimer.TimerFragment.STOPPED_STATE;
+import static com.example.android.eventtimer.TimerFragment.TIMING_STATE;
 import static com.example.android.eventtimer.TimerFragment.TIMER_STATE;
 
 public class Timer {
@@ -33,7 +33,7 @@ public class Timer {
         prefs.edit().putLong(START_TIME_MILLIS, startTime).apply();
         handler.post(runnable);
 
-        setTimerState(prefs, STATE_TIMING);
+        setTimerState(prefs, TIMING_STATE);
         saveLastTime();
     }
 
@@ -45,7 +45,7 @@ public class Timer {
     public void stopTimer() {
         handler.removeCallbacks(runnable);
 
-        setTimerState(prefs, STATE_STOPPED);
+        setTimerState(prefs, STOPPED_STATE);
         saveLastTime();
     }
 
@@ -53,12 +53,12 @@ public class Timer {
         handler.removeCallbacks(runnable);
         elapsedTime = 0;
 
-        setTimerState(prefs, STATE_RESET);
+        setTimerState(prefs, RESET_STATE);
         saveLastTime();
     }
 
     public long reloadStopState() {
-        setTimerState(prefs, STATE_STOPPED);
+        setTimerState(prefs, STOPPED_STATE);
 
         elapsedTime = prefs.getLong(LAST_SAVED_TIME, 0);
 
@@ -81,7 +81,7 @@ public class Timer {
         int seconds = (int) (curDurationSeconds % 60);
         int millis = (int) (durationMillis % 1000);
 
-        String time = String.format("%d:%02d.%02d", minutes, seconds, millis / 10);
+        String time = String.format("%d:%02d.%d", minutes, seconds, millis / 100);
         return time;
     }
 
@@ -105,7 +105,7 @@ public class Timer {
     }
 
     public static String getTimerState(SharedPreferences prefs) {
-        return prefs.getString(TIMER_STATE, STATE_RESET);
+        return prefs.getString(TIMER_STATE, RESET_STATE);
     }
 
     public static void setTimerState(SharedPreferences prefs, String state) {

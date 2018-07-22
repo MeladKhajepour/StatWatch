@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="stats_margin_top">12dp</dimen>
+    <dimen name="stat_title_size">18sp</dimen>
+    <dimen name="stat_size">24sp</dimen>
+</resources>

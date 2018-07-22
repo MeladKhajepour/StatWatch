@@ -1,6 +1,7 @@
 package com.example.android.eventtimer.utils;
 
 import android.content.SharedPreferences;
+import android.util.SparseBooleanArray;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -22,12 +23,19 @@ public class EventsManager {
         saveEvents(prefs);
     }
 
+    public static void undoRemoveEvents(SharedPreferences prefs, List<Event> removedEvents, SparseBooleanArray removedEventIndices) {
+        for(int i = 0; i < removedEvents.size(); i++) {
+            eventList.add(removedEventIndices.keyAt(i), removedEvents.get((removedEvents.size() - 1) - i));
+        }
+        saveEvents(prefs);
+    }
+
     public static void removeSelectedEvents(SharedPreferences prefs, List<Event> selectedEvents) {
         eventList.removeAll(selectedEvents);
         saveEvents(prefs);
     }
 
-    public static List<Event> getEvents(SharedPreferences prefs) {
+    public static List<Event> getAllEvents(SharedPreferences prefs) {
         if(eventList == null) {
             loadEvents(prefs);
         }
