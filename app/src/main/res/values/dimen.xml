@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="stats_margin_top">12dp</dimen>
-    <dimen name="stat_title_size">18sp</dimen>
-    <dimen name="stat_size">24sp</dimen>
+    <dimen name="stats_margin_top">8dp</dimen>
+    <dimen name="stat_title_size">16sp</dimen>
+    <dimen name="stat_size">23sp</dimen>
+    <dimen name="margin_vertical">18dp</dimen>
+    <dimen name="margin_horizontal">28dp</dimen>
+    <dimen name="padding_vertical">8dp</dimen>
 </resources>

@@ -175,7 +175,7 @@ public class EventListFragment extends Fragment {
 
     private void undoRemoveEvents(SparseBooleanArray removedEventIndices) {
         EventsManager.undoRemoveEvents(prefs, removedEvents, removedEventIndices);
-        StatsManager.undoRemoveEvents(prefs, removedEvents);
+        StatsManager.undoRemoveEvents(prefs);
         refreshEventList();
         mainActivityListener.updateStatsFragment();
     }

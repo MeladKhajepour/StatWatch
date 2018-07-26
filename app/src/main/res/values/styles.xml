@@ -13,8 +13,9 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeBackground">@color/timerBackground</item>
+        <item name="actionModeBackground">@color/colorPrimary</item>
         <item name="android:fontFamily">@font/worksans_light</item>
+        <item name="android:navigationBarColor">@color/navColour</item>
     </style>
 
     <style name="TitleText" parent="TextAppearance.AppCompat">

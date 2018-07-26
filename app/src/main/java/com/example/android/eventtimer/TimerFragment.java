@@ -142,13 +142,13 @@ public class TimerFragment extends Fragment {
     private void startTimerCommand() {
         ts.startTimerCommand();
 
-        changeTimerButton(R.color.stopButtonColour, R.drawable.stop_icon);
+        changeTimerButton(R.color.colorAccent, R.drawable.stop_icon);
     }
 
     private void stopTimerCommand() {
         ts.stopTimerCommand();
 
-        changeTimerButton(R.color.startButtonColour, R.drawable.add_icon);
+        changeTimerButton(R.color.colorPrimary, R.drawable.add_icon);
         resetBtn.show();
     }
 
@@ -171,14 +171,14 @@ public class TimerFragment extends Fragment {
     private void loadStoppedState() {
         ts.reloadStoppedStateCommand();
 
-        changeTimerButton(R.color.startButtonColour, R.drawable.add_icon);
+        changeTimerButton(R.color.colorPrimary, R.drawable.add_icon);
         resetBtn.show();
     }
 
     private void resumeTimer() {
         ts.resumeTimerCommand();
 
-        changeTimerButton(R.color.stopButtonColour, R.drawable.stop_icon);
+        changeTimerButton(R.color.colorAccent, R.drawable.stop_icon);
     }
 
     /*
@@ -188,7 +188,7 @@ public class TimerFragment extends Fragment {
      */
 
     private void resetButtons() {
-        changeTimerButton(R.color.startButtonColour, R.drawable.start_icon);
+        changeTimerButton(R.color.colorPrimary, R.drawable.start_icon);
         resetBtn.hide();
     }
 

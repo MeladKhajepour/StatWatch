@@ -1,11 +1,12 @@
 package com.example.android.eventtimer;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.transition.AutoTransition;
 import android.transition.ChangeBounds;
 import android.transition.Fade;
 import android.transition.TransitionManager;
@@ -36,6 +37,7 @@ public class EventStatsFragment extends Fragment {
     private TextView moeView;
     private TextView stdDevView;
     private LinearLayout expandedStats;
+    private LinearLayout moeButton;
     private SharedPreferences prefs;
     private boolean isExpanded;
 
@@ -64,7 +66,7 @@ public class EventStatsFragment extends Fragment {
         updateViews();
     }
 
-    private void setupViews(MainActivity app) {
+    private void setupViews(final MainActivity app) {
         statsBar = app.findViewById(R.id.stats);
         shortestEventView = app.findViewById(R.id.shortest_event_time);
         averageTimeView = app.findViewById(R.id.average_time_time);
@@ -72,6 +74,7 @@ public class EventStatsFragment extends Fragment {
         stdDevView = app.findViewById(R.id.std_dev_value);
         moeView = app.findViewById(R.id.margin_of_error_value);
         expandedStats = app.findViewById(R.id.expanded_stats);
+        moeButton = app.findViewById(R.id.margin_of_error_button);
         prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
         statsBar.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +84,25 @@ public class EventStatsFragment extends Fragment {
                 isExpanded = !isExpanded;
                 toggleExpansion(v, isExpanded);
                 prefs.edit().putBoolean(STATS_EXPANSION, isExpanded).apply();
+            }
+        });
+
+        moeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(app);
+                builder.setTitle("Select a new confidence interval. For details see Menu > More") //todo
+                        .setSingleChoiceItems(new CharSequence[]{"99%", "95%", "90%", "80%"},
+                                StatsManager.getConfidence(prefs),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        StatsManager.changeConfidence(prefs, which);
+                                        updateMoe();
+                                        dialog.dismiss();
+                                    }
+                                }).create()
+                        .show();
             }
         });
 
@@ -112,10 +134,12 @@ public class EventStatsFragment extends Fragment {
         moeView.setText(Timer.formatDuration(StatsManager.getmoe(prefs)));
     }
 
+    public void updateMoe() {
+        moeView.setText(Timer.formatDuration(StatsManager.getmoe(prefs)));
+    }
+
     public void resetStats() {
-        StatsManager.setShortestEvent(prefs, 0);
-        StatsManager.setAverageTime(prefs, 0);
-        StatsManager.setLongestEvent(prefs, 0);
+        StatsManager.resetStats(prefs);
 
         updateViews();
     }

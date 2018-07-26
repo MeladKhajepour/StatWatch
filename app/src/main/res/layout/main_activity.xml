@@ -17,21 +17,20 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/timerBackground"/>
+            android:background="@color/colorPrimary"/>
 
         <TextView
             android:id="@+id/timer_textview"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="160dp"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintBottom_toTopOf="@id/stats"
-            android:textSize="116dp"
+            android:textSize="108sp"
             android:textAlignment="center"
             android:paddingBottom="?attr/actionBarSize"
-            android:gravity="center"
-            android:text="0:00.0"
             android:fontFamily="@font/lato"
-            android:background="@color/timerBackground"/>
+            android:background="@color/colorPrimary"
+            android:text="0:00.0"/>
 
         <include layout="@layout/event_stats_layout" android:id="@+id/stats"/>
 
@@ -54,7 +53,7 @@
         android:src="@drawable/start_icon"
         android:scaleType="center"
         android:layout_gravity="bottom|center"
-        app:backgroundTint="@color/startButtonColour"/>
+        app:backgroundTint="@color/colorPrimary"/>
 
     <View
         android:id="@+id/divider"
@@ -71,7 +70,7 @@
         android:scaleType="center"
         android:src="@drawable/reset_icon"
         android:visibility="invisible"
-        app:backgroundTint="@color/resetButtonColour"
+        app:backgroundTint="@color/colorAccent"
         app:layout_anchor="@+id/divider"
         app:layout_anchorGravity="center_vertical" />
 

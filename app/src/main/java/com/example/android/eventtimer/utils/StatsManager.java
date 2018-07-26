@@ -14,7 +14,8 @@ public class StatsManager {
     private static final String LONGEST_EVENT = "longestEvent";
     private static final String STD_DEV = "stdDev";
     private static final String MOE = "moe";
-    private static final String CONFIDENCE = "confidence";
+    public static final String SELECTED_CONFIDENCE_VALUE = "confidence_value";
+    public static final String SELECTED_CONFIDENCE_ITEM = "confidence_selection";
 
     public static void updateEventAdded(SharedPreferences prefs, Event event) {
         int eventListSize = EventsManager.getEventListSize(prefs);
@@ -41,10 +42,8 @@ public class StatsManager {
         calculateAndSetMoe(prefs);
     }
 
-    public static void undoRemoveEvents(SharedPreferences prefs, List<Event> eventList) {
-        if(useListStats) {
-            recalculateListStats(prefs);
-        }
+    public static void undoRemoveEvents(SharedPreferences prefs) {
+        recalculateListStats(prefs);
     }
 
     public static void updateEventsRemoved(SharedPreferences prefs, List<Event> removedEventsList) {
@@ -93,6 +92,15 @@ public class StatsManager {
             calculateAndSetStdDev(prefs);
             calculateAndSetMoe(prefs);
         }
+    }
+
+    public static void resetStats(SharedPreferences prefs) {
+        setShortestEvent(prefs, 0);
+        setAverageTime(prefs, 0);
+        setLongestEvent(prefs, 0);
+
+        calculateAndSetMoe(prefs);
+        calculateAndSetStdDev(prefs);
     }
 
     public static void recalculateListStats(SharedPreferences prefs) {
@@ -181,20 +189,44 @@ public class StatsManager {
 
     private static void calculateAndSetMoe(SharedPreferences prefs) {
         int n = EventsManager.getEventListSize(prefs);
+        float moe = 0;
 
-        if(n == 1) {
-            return;
+        if(n > 1) {
+            int df = n - 1;
+            double conf = getConfidenceValue(prefs);
+            double p = 1 - conf;
+
+            TDistribution dist = new TDistribution(df);
+            float t = (float) dist.inverseCumulativeProbability(p);
+            moe = (float) (getStdDev(prefs) / Math.sqrt(n)) * t;
         }
 
-        int df = n - 1;
-        double conf = prefs.getFloat(CONFIDENCE, 0.1f);
-        double p = 1 - conf;
-
-        TDistribution dist = new TDistribution(df);
-        float t = (float) dist.inverseCumulativeProbability(p);
-        float moe = (float) (getStdDev(prefs) / Math.sqrt(n)) * t;
-
         prefs.edit().putFloat(MOE, moe).apply();
+    }
+
+    public static void changeConfidence(SharedPreferences prefs, int selected) {
+        setConfidenceValue(prefs, selected);
+        calculateAndSetMoe(prefs);
+        prefs.edit().putInt(SELECTED_CONFIDENCE_ITEM, selected).apply();
+    }
+
+    private static void setConfidenceValue(SharedPreferences prefs, int selection) {
+        float conf;
+        switch (selection) {
+            case 0: conf = 0.01f;
+            break;
+
+            case 1: conf = 0.05f;
+            break;
+
+            case 2: conf = 0.1f;
+            break;
+
+            default: conf = 0.2f;
+            break;
+        }
+
+        prefs.edit().putFloat(SELECTED_CONFIDENCE_VALUE, conf).apply();
     }
 
     public static long getShortestEvent(SharedPreferences prefs) {
@@ -215,5 +247,13 @@ public class StatsManager {
 
     public static long getmoe(SharedPreferences prefs) {
         return (long) prefs.getFloat(MOE, 0);
+    }
+
+    public static int getConfidence(SharedPreferences prefs) {
+        return prefs.getInt(SELECTED_CONFIDENCE_ITEM, 2);
+    }
+
+    private static float getConfidenceValue(SharedPreferences prefs) {
+        return prefs.getFloat(SELECTED_CONFIDENCE_VALUE, 0.1f);
     }
 }
