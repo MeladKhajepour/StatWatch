@@ -5,4 +5,6 @@ public interface UpdateUIListener {
     void updateStatsFragment();
 
     void updateListFragment();
+
+    void undo();
 }

@@ -21,11 +21,13 @@ public class Timer {
     private Handler handler = new Handler();
     private SharedPreferences prefs;
     private static AtomicInteger autoIndex;
+    private int lastIndex;
 
-    public Timer(SharedPreferences prefs) {
+    Timer(SharedPreferences prefs) {
         this.prefs = prefs;
 
         autoIndex = new AtomicInteger(prefs.getInt(LAST_SAVED_INDEX, 0));
+        lastIndex = autoIndex.get();
     }
 
     public void startTimer() {
@@ -57,16 +59,16 @@ public class Timer {
         saveLastTime();
     }
 
-    public long reloadStopState() {
+    public void reloadStopState() {
         setTimerState(prefs, STOPPED_STATE);
 
         elapsedTime = prefs.getLong(LAST_SAVED_TIME, 0);
-
-        return elapsedTime;
     }
 
     public Event createEvent() {
-        Event event = new Event(autoIndex.incrementAndGet(), elapsedTime);
+        lastIndex = autoIndex.incrementAndGet();
+
+        Event event = new Event(lastIndex, elapsedTime);
 
         saveIndex();
 
@@ -97,6 +99,11 @@ public class Timer {
 
     public void resetTimerIndex() {
         autoIndex.set(0);
+        saveIndex();
+    }
+
+    public void undoResetTimerIndex() {
+        autoIndex.set(lastIndex);
         saveIndex();
     }
 

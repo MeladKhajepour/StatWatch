@@ -145,4 +145,10 @@ public class MainActivity extends AppCompatActivity implements UpdateUIListener 
     public void updateStatsFragment() {
         eventStatsFragment.updateViews();
     }
+
+    @Override
+    public void undo() {
+        eventStatsFragment.updateViews();
+        timerFragment.undoResetIndex();
+    }
 }

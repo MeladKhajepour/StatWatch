@@ -168,6 +168,10 @@ public class TimerFragment extends Fragment {
         resetButtons();
     }
 
+    public void undoResetIndex() {
+        ts.undoResetIndex();
+    }
+
     private void loadStoppedState() {
         ts.reloadStoppedStateCommand();
 

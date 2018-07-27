@@ -110,6 +110,10 @@ public class TimerService extends Service {
         refreshFragmentTv();
     }
 
+    public void undoResetIndex() {
+        timer.undoResetTimerIndex();
+    }
+
     private void createEvent() {
         Event event = timer.createEvent();
 

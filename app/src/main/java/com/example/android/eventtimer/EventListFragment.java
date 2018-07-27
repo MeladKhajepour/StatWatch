@@ -3,7 +3,6 @@ package com.example.android.eventtimer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.SparseBooleanArray;
@@ -14,8 +13,8 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
-import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.Event;
+import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.EventsManager;
 import com.example.android.eventtimer.utils.StatsManager;
 import com.example.android.eventtimer.utils.UpdateUIListener;
@@ -29,8 +28,6 @@ import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 public class EventListFragment extends Fragment {
 
     private ListView eventsListView;
-    private FloatingActionButton mainBtn;
-    private FloatingActionButton resetBtn;
     private List<Event> removedEvents;
     private int numRemovedEvents;
 
@@ -58,8 +55,6 @@ public class EventListFragment extends Fragment {
 
     public void init(MainActivity app) {
         eventsListView = app.findViewById(R.id.events_list);
-        mainBtn = app.findViewById(R.id.timer_btn);
-        resetBtn = app.findViewById(R.id.timer_reset_btn);
 
         eventListAdapter = new EventListAdapter(app);
         eventsListView.setAdapter(eventListAdapter);
@@ -153,7 +148,7 @@ public class EventListFragment extends Fragment {
         return selectedEventsList;
     }
 
-    private void showUndoSnackbar(SparseBooleanArray selectedEventIndices) {
+    private void showUndoSnackbar(SparseBooleanArray selectedEventIndices) { //todo show it in main activity
         final SparseBooleanArray indices = selectedEventIndices.clone();
 
         String text = numRemovedEvents + " events removed";
@@ -177,6 +172,6 @@ public class EventListFragment extends Fragment {
         EventsManager.undoRemoveEvents(prefs, removedEvents, removedEventIndices);
         StatsManager.undoRemoveEvents(prefs);
         refreshEventList();
-        mainActivityListener.updateStatsFragment();
+        mainActivityListener.undo();
     }
 }
