@@ -4,32 +4,28 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.transition.ChangeBounds;
 import android.transition.Fade;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.android.eventtimer.databinding.EventStatsLayoutBinding;
+import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.ExpandStats;
 import com.example.android.eventtimer.utils.StatsManager;
 import com.example.android.eventtimer.utils.Timer;
 
+import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
+import static com.example.android.eventtimer.utils.Constants.USE_LIST_STATS;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 import static com.example.android.eventtimer.utils.TransitionHelper.ANIMATION_DURATION;
 
-public class EventStatsFragment extends Fragment {
-    public static String USE_LIST_STATS = "useListStats";
-    public static String STATS_EXPANSION = "stats_expansion";
-
+public class StatsFragment extends Fragment {
     private LinearLayout statsBar;
     private TextView shortestEventView;
     private TextView averageTimeView;
@@ -46,18 +42,9 @@ public class EventStatsFragment extends Fragment {
     public static boolean useListStats;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
-
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        EventStatsLayoutBinding binding = EventStatsLayoutBinding.inflate(inflater, container, false);
-        binding.setEs(expandStats);
-
-        return binding.getRoot();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        init((MainActivity) context);
     }
 
     public void init(MainActivity app) {
@@ -118,6 +105,11 @@ public class EventStatsFragment extends Fragment {
         if(b) {
             recalculateListStats();
         }
+    }
+
+    public void addEvent(Event event) {
+        StatsManager.updateEventAdded(prefs, event);
+        updateViews();
     }
 
     public void updateViews() {

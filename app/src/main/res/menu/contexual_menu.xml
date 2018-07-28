@@ -6,6 +6,6 @@
         android:id="@+id/action_delete_selected_events"
         android:icon="@drawable/delete_icon"
         android:title="Delete selected events"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 
 </menu>

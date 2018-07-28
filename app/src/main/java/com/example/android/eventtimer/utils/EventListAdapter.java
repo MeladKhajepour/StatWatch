@@ -1,6 +1,7 @@
 package com.example.android.eventtimer.utils;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -19,8 +20,8 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 
     private SparseBooleanArray selectedEventIds;
 
-    public EventListAdapter(MainActivity app) {
-        super(app.getBaseContext(), R.layout.time_row, EventsManager.getAllEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
+    public EventListAdapter(Context context, SharedPreferences prefs) {
+        super(context, R.layout.time_row, EventsManager.getAllEvents(prefs));
         selectedEventIds = new SparseBooleanArray();
     }
 
@@ -51,8 +52,6 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         }
 
         viewHolder.label.setText(event.getLabelText());
-        //TODO: add method to event obj to return formatted text of time instead of using timer (done)
-        //TODO: think more about ^ after refactoring the counter into a linear layout with h:m:s
         viewHolder.time.setText(event.getFormattedDuration());
 
         return convertView;

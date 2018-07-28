@@ -17,7 +17,6 @@ import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.EventsManager;
 import com.example.android.eventtimer.utils.StatsManager;
-import com.example.android.eventtimer.utils.UpdateUIListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +24,11 @@ import java.util.List;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
 
-public class EventListFragment extends Fragment {
+public class EventsFragment extends Fragment {
 
-    private ListView eventsListView;
-    private List<Event> removedEvents;
-    private int numRemovedEvents;
-
+    private ListView listView;
+    //private List<Event> removedEvents;
     private EventListAdapter eventListAdapter;
-    private UpdateUIListener mainActivityListener;
     private SharedPreferences prefs;
 
     @Override
@@ -44,37 +40,27 @@ public class EventListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mainActivityListener = (UpdateUIListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement ListFragmentInterface");
-        }
 
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        init(context);
     }
 
-    public void init(MainActivity app) {
-        eventsListView = app.findViewById(R.id.events_list);
-
-        eventListAdapter = new EventListAdapter(app);
-        eventsListView.setAdapter(eventListAdapter);
-        eventsListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-        eventsListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+    public void init(Context context) {
+        MainActivity app = (MainActivity) context;
+        eventListAdapter = new EventListAdapter(context, prefs);
+        listView = app.findViewById(R.id.events_list);
+        listView.setAdapter(eventListAdapter);
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
 
             @Override
-            public void onItemCheckedStateChanged(ActionMode mode,
-                                                  int position, long id, boolean checked) {
-                // Capture total checked items
-                final int checkedCount = eventsListView.getCheckedItemCount();
-                // Set the CAB title according to total checked items
-                String event = " event";
+            public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+                int checkedCount = listView.getCheckedItemCount();
+                StringBuilder sb = checkedCount > 1 ?
+                        new StringBuilder(" events") : new StringBuilder(" event");
 
-                if(checkedCount != 1) {
-                    event = " events";
-                }
-
-                mode.setTitle(checkedCount + event + " selected");
-                // Calls toggleSelection method from ListViewAdapter Class
+                sb.append(" selected");
+                mode.setTitle(checkedCount + sb.toString());
                 eventListAdapter.toggleSelection(position);
             }
 
@@ -111,26 +97,28 @@ public class EventListFragment extends Fragment {
         });
     }
 
-    public void refreshEventList() {
+    public void eventAdded(Event event) {
+        EventsManager.addEvent(prefs, event);
+        refreshList();
+    }
+
+    public void refreshList() {
         eventListAdapter.notifyDataSetChanged();
     }
 
-    public void removeAllEvents() {
-        List<Event> eventList = EventsManager.getAllEvents(prefs);
+    public void clearEvents() {
+        List<Event> selectedEvents = new ArrayList<>(EventsManager.getAllEvents(prefs));
 
-        removeSelectedEvents(eventList);
+        removeSelectedEvents(selectedEvents);
     }
 
     private void removeSelectedEvents(List<Event> selectedEvents) {
-        removedEvents = new ArrayList<>(selectedEvents);
-        numRemovedEvents = removedEvents.size();
+        EventsManager.removeSelectedEvents(prefs, selectedEvents);
+        StatsManager.updateEventsRemoved(prefs, selectedEvents);
+        refreshList();
+        ((MainActivity) getContext()).updateStatsFragment();
 
-        EventsManager.removeSelectedEvents(prefs, removedEvents);
-        StatsManager.updateEventsRemoved(prefs, removedEvents);
-        refreshEventList();
-        mainActivityListener.updateStatsFragment();
-
-        showUndoSnackbar(eventListAdapter.getSelectedIds());
+        showUndoSnackbar(selectedEvents);
 
         eventListAdapter.clearSelection();
     }
@@ -148,30 +136,26 @@ public class EventListFragment extends Fragment {
         return selectedEventsList;
     }
 
-    private void showUndoSnackbar(SparseBooleanArray selectedEventIndices) { //todo show it in main activity
-        final SparseBooleanArray indices = selectedEventIndices.clone();
+    private void showUndoSnackbar(final List<Event> selectedEvents) {
+        final SparseBooleanArray indices = eventListAdapter.getSelectedIds().clone();
+        int numRemovedEvents = selectedEvents.size();
 
-        String text = numRemovedEvents + " events removed";
+        String text = numRemovedEvents == 1 ? " event removed" : " events removed";
 
-        if(numRemovedEvents == 1) {
-            text = numRemovedEvents + " event removed";
-        }
-
-        Snackbar snackbar = Snackbar.make(eventsListView, text, Snackbar.LENGTH_LONG);
-
+        Snackbar snackbar = Snackbar.make(listView, numRemovedEvents + text, Snackbar.LENGTH_LONG);
         snackbar.setAction("Undo", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                undoRemoveEvents(indices);
+                undoRemoveEvents(indices, selectedEvents);
             }
         });
         snackbar.show();
     }
 
-    private void undoRemoveEvents(SparseBooleanArray removedEventIndices) {
-        EventsManager.undoRemoveEvents(prefs, removedEvents, removedEventIndices);
+    private void undoRemoveEvents(SparseBooleanArray removedEventIndices, List<Event> selectedEvents) {
+        EventsManager.undoRemoveEvents(prefs, selectedEvents, removedEventIndices);
         StatsManager.undoRemoveEvents(prefs);
-        refreshEventList();
-        mainActivityListener.undo();
+        refreshList();
+        ((MainActivity) getContext()).undo();
     }
 }

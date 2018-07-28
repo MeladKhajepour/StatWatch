@@ -51,7 +51,7 @@
         android:layout_height="76dp"
         android:layout_marginBottom="24dp"
         android:src="@drawable/start_icon"
-        android:scaleType="center"
+        android:scaleType="fitXY"
         android:layout_gravity="bottom|center"
         app:backgroundTint="@color/colorPrimary"/>
 
@@ -67,7 +67,7 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_gravity="start|center_vertical"
-        android:scaleType="center"
+        android:scaleType="fitXY"
         android:src="@drawable/reset_icon"
         android:visibility="invisible"
         app:backgroundTint="@color/colorAccent"

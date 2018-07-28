@@ -6,11 +6,11 @@ import android.os.SystemClock;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.example.android.eventtimer.TimerFragment.START_TIME_MILLIS;
-import static com.example.android.eventtimer.TimerFragment.RESET_STATE;
-import static com.example.android.eventtimer.TimerFragment.STOPPED_STATE;
-import static com.example.android.eventtimer.TimerFragment.TIMING_STATE;
-import static com.example.android.eventtimer.TimerFragment.TIMER_STATE;
+import static com.example.android.eventtimer.utils.Constants.IS_READY;
+import static com.example.android.eventtimer.utils.Constants.IS_STOPPED;
+import static com.example.android.eventtimer.utils.Constants.IS_TIMING;
+import static com.example.android.eventtimer.utils.Constants.START_TIME_MILLIS;
+import static com.example.android.eventtimer.utils.Constants.TIMER_STATE;
 
 public class Timer {
 
@@ -35,7 +35,7 @@ public class Timer {
         prefs.edit().putLong(START_TIME_MILLIS, startTime).apply();
         handler.post(runnable);
 
-        setTimerState(prefs, TIMING_STATE);
+        setTimerState(prefs, IS_TIMING);
         saveLastTime();
     }
 
@@ -47,7 +47,7 @@ public class Timer {
     public void stopTimer() {
         handler.removeCallbacks(runnable);
 
-        setTimerState(prefs, STOPPED_STATE);
+        setTimerState(prefs, IS_STOPPED);
         saveLastTime();
     }
 
@@ -55,12 +55,12 @@ public class Timer {
         handler.removeCallbacks(runnable);
         elapsedTime = 0;
 
-        setTimerState(prefs, RESET_STATE);
+        setTimerState(prefs, IS_READY);
         saveLastTime();
     }
 
     public void reloadStopState() {
-        setTimerState(prefs, STOPPED_STATE);
+        setTimerState(prefs, IS_STOPPED);
 
         elapsedTime = prefs.getLong(LAST_SAVED_TIME, 0);
     }
@@ -112,7 +112,7 @@ public class Timer {
     }
 
     public static String getTimerState(SharedPreferences prefs) {
-        return prefs.getString(TIMER_STATE, RESET_STATE);
+        return prefs.getString(TIMER_STATE, IS_READY);
     }
 
     public static void setTimerState(SharedPreferences prefs, String state) {

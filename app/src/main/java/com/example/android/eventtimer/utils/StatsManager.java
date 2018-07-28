@@ -6,7 +6,7 @@ import org.apache.commons.math3.distribution.TDistribution;
 
 import java.util.List;
 
-import static com.example.android.eventtimer.EventStatsFragment.useListStats;
+import static com.example.android.eventtimer.StatsFragment.useListStats;
 
 public class StatsManager {
     private static final String SHORTEST_EVENT = "shortestEvent";
@@ -193,8 +193,8 @@ public class StatsManager {
 
         if(n > 1) {
             int df = n - 1;
-            double conf = getConfidenceValue(prefs);
-            double p = 1 - conf;
+            double alpha = getConfidenceValue(prefs);
+            double p = 1 - (alpha / 2);
 
             TDistribution dist = new TDistribution(df);
             float t = (float) dist.inverseCumulativeProbability(p);

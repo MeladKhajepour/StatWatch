@@ -1,34 +1,30 @@
 package com.example.android.eventtimer;
 
-import android.app.ActionBar;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
-import android.view.WindowManager;
 
-import com.example.android.eventtimer.utils.UpdateUIListener;
+import com.example.android.eventtimer.utils.Event;
 
-import static com.example.android.eventtimer.EventStatsFragment.STATS_EXPANSION;
+import static com.example.android.eventtimer.utils.Constants.EVENTS_FRAGMENT;
+import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
+import static com.example.android.eventtimer.utils.Constants.STATS_FRAGMENT;
+import static com.example.android.eventtimer.utils.Constants.TIMER_FRAGMENT;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
-public class MainActivity extends AppCompatActivity implements UpdateUIListener {
+public class MainActivity extends AppCompatActivity {
 
     private TimerFragment timerFragment;
-    private EventStatsFragment eventStatsFragment;
-    private EventListFragment eventListFragment;
-
-    private MenuItem recalculateStatsAction;
+    private StatsFragment statsFragment;
+    private EventsFragment eventsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main_activity);
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -39,17 +35,6 @@ public class MainActivity extends AppCompatActivity implements UpdateUIListener 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
-        MenuItem autoUpdate = menu.findItem(R.id.action_auto_update);
-
-        autoUpdate.setChecked(
-                getSharedPreferences(PREFS, MODE_PRIVATE)
-                        .getBoolean(EventStatsFragment.USE_LIST_STATS, false)
-        );
-
-        recalculateStatsAction = menu.findItem(R.id.action_recalculate_stats);
-
-        recalculateStatsAction.setEnabled(!autoUpdate.isChecked());
-
 
         return true;
     }
@@ -58,97 +43,61 @@ public class MainActivity extends AppCompatActivity implements UpdateUIListener 
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-
-            case R.id.action_clear_list:
-                clearListAndRefresh();
+            case R.id.action_reset:
+                reset();
                 return true;
 
-            case R.id.action_recalculate_stats:
-                eventStatsFragment.recalculateListStats();
-                return true;
-
-            case R.id.action_auto_update:
-                toggleAutoUpdate(item);
-                return true;
-
-            case R.id.action_reset_all:
-                resetAll();
+            case R.id.action_more:
+                //todo start more activity
                 return true;
 
             default:
                 return super.onOptionsItemSelected(item);
-
         }
     }
 
     private void setupFragments() {
-        String EVENT_STATS_FRAGMENT = "timer_stats_fragment";
-        String TIMER_FRAGMENT = "timer_fragment";
-        String EVENT_LIST_FRAGMENT = "event_list_fragment";
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        boolean isExpanded = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(STATS_EXPANSION, false);
         Bundle args = new Bundle();
+        args.putBoolean(STATS_EXPANSION, isExpanded);
 
-        FragmentManager fm = getSupportFragmentManager();
+        timerFragment = new TimerFragment();
+        eventsFragment = new EventsFragment(); //todo here
+        statsFragment = new StatsFragment();
+        statsFragment.setArguments(args);
 
-        timerFragment = (TimerFragment) fm.findFragmentByTag(TIMER_FRAGMENT);
-        eventStatsFragment = (EventStatsFragment) fm.findFragmentByTag(EVENT_STATS_FRAGMENT);
-        eventListFragment = (EventListFragment) fm.findFragmentByTag(EVENT_LIST_FRAGMENT);
-
-        if(timerFragment == null) {
-            timerFragment = new TimerFragment();
-            fm.beginTransaction().add(timerFragment, TIMER_FRAGMENT).commit();
-        }
-
-        if(eventStatsFragment == null) {
-            args.putBoolean(
-                    STATS_EXPANSION,
-                    getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(STATS_EXPANSION, false)
-            );
-            eventStatsFragment = new EventStatsFragment();
-            eventStatsFragment.setArguments(args);
-            fm.beginTransaction().add(eventStatsFragment, EVENT_STATS_FRAGMENT).commit();
-        }
-
-        if(eventListFragment == null) {
-            eventListFragment = new EventListFragment();
-            fm.beginTransaction().add(eventListFragment, EVENT_LIST_FRAGMENT).commit();
-        }
-
-        timerFragment.init(this);
-        eventStatsFragment.init(this);
-        eventListFragment.init(this);
+        ft.add(timerFragment, TIMER_FRAGMENT)
+                .add(eventsFragment, EVENTS_FRAGMENT)
+                .add(statsFragment, STATS_FRAGMENT)
+        .commit();
     }
 
-    private void clearListAndRefresh() {
-        eventListFragment.removeAllEvents();
-        eventStatsFragment.updateViews();
+    private void reset() {
+        eventsFragment.clearEvents();
+        statsFragment.resetStats();
+        timerFragment.clearTimer();
     }
 
-    private void toggleAutoUpdate(MenuItem item) {
-        item.setChecked(!item.isChecked());
-        recalculateStatsAction.setEnabled(!item.isChecked());
-
-        eventStatsFragment.useListStats(item.isChecked());
+    public void eventAdded(Event event) {
+        eventsFragment.eventAdded(event);
+        statsFragment.addEvent(event);
     }
 
-    private void resetAll() {
-        eventListFragment.removeAllEvents();
-        eventStatsFragment.resetStats();
-        timerFragment.resetTimerIndex();
+    public void eventsRemoved() {
+
     }
 
-    @Override
     public void updateListFragment() {
-        eventListFragment.refreshEventList();
+        eventsFragment.refreshList();
     }
 
-    @Override
     public void updateStatsFragment() {
-        eventStatsFragment.updateViews();
+        statsFragment.updateViews();
     }
 
-    @Override
     public void undo() {
-        eventStatsFragment.updateViews();
+        statsFragment.updateViews();
         timerFragment.undoResetIndex();
     }
 }
