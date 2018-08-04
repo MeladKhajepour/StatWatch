@@ -1,16 +1,16 @@
 package com.example.android.eventtimer.utils;
 
 public class Event {
-    private int label;
+    private int index;
     private long durationMillis;
 
-    public Event(int label, long durationMillis) {
-        this.label = label;
+    public Event(int index, long durationMillis) {
+        this.index = index;
         this.durationMillis = durationMillis;
     }
 
-    public String getLabelText() {
-        return "Event " + String.valueOf(label);
+    public String getLabel() {
+        return "Event " + String.valueOf(index);
     }
 
     public long getDurationMillis() {

@@ -7,8 +7,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.example.android.eventtimer.utils.Event;
-
 import static com.example.android.eventtimer.utils.Constants.EVENTS_FRAGMENT;
 import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
 import static com.example.android.eventtimer.utils.Constants.STATS_FRAGMENT;
@@ -24,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("onCreate");
         setContentView(R.layout.main_activity);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.action_reset:
-                reset();
+                onMenuReset();
                 return true;
 
             case R.id.action_more:
@@ -73,31 +72,23 @@ public class MainActivity extends AppCompatActivity {
         .commit();
     }
 
-    private void reset() {
+    private void onMenuReset() {
         eventsFragment.clearEvents();
         statsFragment.resetStats();
         timerFragment.clearTimer();
     }
 
-    public void eventAdded(Event event) {
-        eventsFragment.eventAdded(event);
-        statsFragment.addEvent(event);
-    }
-
-    public void eventsRemoved() {
-
-    }
-
-    public void updateListFragment() {
+    public void onEventAdded() {
         eventsFragment.refreshList();
+        statsFragment.refreshStats();
     }
 
     public void updateStatsFragment() {
-        statsFragment.updateViews();
+        statsFragment.refreshStats();
     }
 
     public void undo() {
-        statsFragment.updateViews();
+        statsFragment.refreshStats();
         timerFragment.undoResetIndex();
     }
 }

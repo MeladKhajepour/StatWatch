@@ -4,12 +4,6 @@
     xmlns:tool="http://schemas.android.com/tools"
     tool:showIn="@layout/main_activity">
 
-    <data>
-        <variable
-            name="es"
-            type="com.example.android.eventtimer.utils.ExpandStats"/>
-    </data>
-
     <LinearLayout
         android:id="@+id/stats"
         android:orientation="vertical"
@@ -153,8 +147,8 @@
                 android:layout_marginRight="@dimen/margin_horizontal"
                 android:layout_marginLeft="@dimen/margin_horizontal"
                 android:layout_marginBottom="4dp"
-                android:foreground="@drawable/ripple"
-                android:background="@drawable/round_rect"
+                android:foreground="@drawable/moe_ripple"
+                android:background="@drawable/round_rect_accent"
                 android:paddingTop="@dimen/padding_vertical"
                 android:paddingBottom="@dimen/padding_vertical"
                 android:elevation="6dp">

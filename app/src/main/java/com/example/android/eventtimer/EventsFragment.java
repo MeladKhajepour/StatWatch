@@ -19,6 +19,7 @@ import com.example.android.eventtimer.utils.EventsManager;
 import com.example.android.eventtimer.utils.StatsManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
@@ -27,7 +28,6 @@ import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 public class EventsFragment extends Fragment {
 
     private ListView listView;
-    //private List<Event> removedEvents;
     private EventListAdapter eventListAdapter;
     private SharedPreferences prefs;
 
@@ -97,17 +97,13 @@ public class EventsFragment extends Fragment {
         });
     }
 
-    public void eventAdded(Event event) {
-        EventsManager.addEvent(prefs, event);
-        refreshList();
-    }
-
     public void refreshList() {
         eventListAdapter.notifyDataSetChanged();
     }
 
     public void clearEvents() {
         List<Event> selectedEvents = new ArrayList<>(EventsManager.getAllEvents(prefs));
+        eventListAdapter.selectAll();
 
         removeSelectedEvents(selectedEvents);
     }
@@ -124,20 +120,18 @@ public class EventsFragment extends Fragment {
     }
 
     private List<Event> getSelectedEvents() {
-        SparseBooleanArray selected = eventListAdapter.getSelectedIds();
+        List<Integer> selectedEvents = eventListAdapter.getSelectedIds();
         List<Event> selectedEventsList = new ArrayList<>();
 
-        for (int i = (selected.size() - 1); i >= 0; i--) {
-            if (selected.valueAt(i)) {
-                selectedEventsList.add(eventListAdapter.getItem(selected.keyAt(i)));
-            }
+        for(Integer selected : selectedEvents) {
+            selectedEventsList.add(eventListAdapter.getItem(selected));
         }
 
         return selectedEventsList;
     }
 
     private void showUndoSnackbar(final List<Event> selectedEvents) {
-        final SparseBooleanArray indices = eventListAdapter.getSelectedIds().clone();
+        final List<Integer> indices = eventListAdapter.getSelectedIds();
         int numRemovedEvents = selectedEvents.size();
 
         String text = numRemovedEvents == 1 ? " event removed" : " events removed";
@@ -152,7 +146,7 @@ public class EventsFragment extends Fragment {
         snackbar.show();
     }
 
-    private void undoRemoveEvents(SparseBooleanArray removedEventIndices, List<Event> selectedEvents) {
+    private void undoRemoveEvents(List<Integer> removedEventIndices, List<Event> selectedEvents) {
         EventsManager.undoRemoveEvents(prefs, selectedEvents, removedEventIndices);
         StatsManager.undoRemoveEvents(prefs);
         refreshList();

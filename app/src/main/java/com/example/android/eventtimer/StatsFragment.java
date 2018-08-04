@@ -15,15 +15,13 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.android.eventtimer.utils.Event;
-import com.example.android.eventtimer.utils.ExpandStats;
 import com.example.android.eventtimer.utils.StatsManager;
 import com.example.android.eventtimer.utils.Timer;
 
+import static com.example.android.eventtimer.utils.Constants.SHOW_BUTTONS_DURATION;
 import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
 import static com.example.android.eventtimer.utils.Constants.USE_LIST_STATS;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
-import static com.example.android.eventtimer.utils.TransitionHelper.ANIMATION_DURATION;
 
 public class StatsFragment extends Fragment {
     private LinearLayout statsBar;
@@ -37,7 +35,6 @@ public class StatsFragment extends Fragment {
     private SharedPreferences prefs;
     private boolean isExpanded;
 
-    private ExpandStats expandStats;
 
     public static boolean useListStats;
 
@@ -48,9 +45,8 @@ public class StatsFragment extends Fragment {
     }
 
     public void init(MainActivity app) {
-        expandStats = new ExpandStats();
         setupViews(app);
-        updateViews();
+        refreshStats();
     }
 
     private void setupViews(final MainActivity app) {
@@ -107,12 +103,14 @@ public class StatsFragment extends Fragment {
         }
     }
 
-    public void addEvent(Event event) {
-        StatsManager.updateEventAdded(prefs, event);
-        updateViews();
+    public void addEvent() {
+        long t = System.currentTimeMillis();
+        refreshStats();
+
+        System.out.println("SF.addToList: "+(System.currentTimeMillis()-t)+"ms");
     }
 
-    public void updateViews() {
+    public void refreshStats() {
         String shortestEventText = Timer.formatDuration(StatsManager.getShortestEvent(prefs));
 
         if(StatsManager.getShortestEvent(prefs) == (long) Double.POSITIVE_INFINITY) {
@@ -133,23 +131,23 @@ public class StatsFragment extends Fragment {
     public void resetStats() {
         StatsManager.resetStats(prefs);
 
-        updateViews();
+        refreshStats();
     }
 
     public void recalculateListStats() {
         StatsManager.recalculateListStats(prefs);
 
-        updateViews();
+        refreshStats();
     }
 
     private void toggleExpansion(View v, boolean isExpanded){
         TransitionSet transition = new TransitionSet();
-        transition.setDuration(ANIMATION_DURATION);
+        transition.setDuration(SHOW_BUTTONS_DURATION);
         transition.setOrdering(TransitionSet.ORDERING_TOGETHER);
         transition.setInterpolator(new DecelerateInterpolator());
         transition.addTransition(new ChangeBounds())
-                .addTransition(new Fade(Fade.IN).setDuration(ANIMATION_DURATION))
-                .addTransition(new Fade(Fade.OUT).setDuration(ANIMATION_DURATION/2));
+                .addTransition(new Fade(Fade.IN).setDuration(SHOW_BUTTONS_DURATION))
+                .addTransition(new Fade(Fade.OUT).setDuration(SHOW_BUTTONS_DURATION /2));
 
         TransitionManager.beginDelayedTransition((ViewGroup) v.getRootView().findViewById(R.id.container), transition);
 

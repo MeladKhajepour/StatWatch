@@ -3,8 +3,17 @@
     <color name="colorPrimary">#574D5F</color>
     <color name="colorPrimaryDark">#2e2535</color>
     <color name="colorAccent">#F17253</color>
+    <color name="pause_button_colour">@color/colorPrimary</color>
+    <color name="add_button_colour">#3200e676</color>
     <color name="selectedEventColour">#80ff1744</color>
-    <color name="backgroundColour">#222222</color>
-    <color name="navColour">#1b1b1b</color>
-    <color name="lightTextColour">#eeeeee</color>
+    <color name="start_button_colour">@color/navbar_colour</color>
+    <color name="background_colour">#222222</color>
+    <color name="navbar_colour">#1b1b1b</color>
+    <color name="light_text_colour">#eeeeee</color>
+    <color name="ripple_colour_moe">#60eeeeee</color>
+    <color name="ripple_colour_start">#45dddddd</color>
+    <color name="ripple_colour_add">#6000e676</color>
+    <color name="ripple_colour_reset">#80c4001d</color>
+    <color name="button_bar_divider">#20cccccc</color>
+    <color name="reset_button_colour">#52c4001d</color>
 </resources>

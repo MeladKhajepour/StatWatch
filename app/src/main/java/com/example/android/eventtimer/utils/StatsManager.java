@@ -17,7 +17,7 @@ public class StatsManager {
     public static final String SELECTED_CONFIDENCE_VALUE = "confidence_value";
     public static final String SELECTED_CONFIDENCE_ITEM = "confidence_selection";
 
-    public static void updateEventAdded(SharedPreferences prefs, Event event) {
+    public static void calculateStats(SharedPreferences prefs, Event event) {
         int eventListSize = EventsManager.getEventListSize(prefs);
 
         long newTime = event.getDurationMillis();
@@ -47,51 +47,49 @@ public class StatsManager {
     }
 
     public static void updateEventsRemoved(SharedPreferences prefs, List<Event> removedEventsList) {
-        if(useListStats) {
-            int eventListSize = EventsManager.getEventListSize(prefs);
+        int eventListSize = EventsManager.getEventListSize(prefs);
 
-            if(eventListSize == 0) {
-                setShortestEvent(prefs, 0); // todo
-                setAverageTime(prefs, 0); // todo
-                setLongestEvent(prefs, 0);
-            } else if(eventListSize == 1) {
-                updateSingleEvent(prefs, EventsManager.getAllEvents(prefs).get(0).getDurationMillis());
-            } else {
-                long totalRemovedTime = 0;
-                long averageTimeMillis = getAverageTime(prefs);
-                boolean updateLongest = false;
-                boolean updateShortest = false;
+        if(eventListSize == 0) {
+            setShortestEvent(prefs, 0); // todo
+            setAverageTime(prefs, 0); // todo
+            setLongestEvent(prefs, 0);
+        } else if(eventListSize == 1) {
+            updateSingleEvent(prefs, EventsManager.getAllEvents(prefs).get(0).getDurationMillis());
+        } else {
+            long totalRemovedTime = 0;
+            long averageTimeMillis = getAverageTime(prefs);
+            boolean updateLongest = false;
+            boolean updateShortest = false;
 
-                for(Event removedEvent : removedEventsList) {
-                    long removedTime = removedEvent.getDurationMillis();
+            for(Event removedEvent : removedEventsList) {
+                long removedTime = removedEvent.getDurationMillis();
 
-                    totalRemovedTime += removedTime;
+                totalRemovedTime += removedTime;
 
-                    if(removedTime == getShortestEvent(prefs)) {
-                        updateShortest = true;
-                    }
-
-                    if(removedTime == getLongestEvent(prefs)) {
-                        updateLongest = true;
-                    }
+                if(removedTime == getShortestEvent(prefs)) {
+                    updateShortest = true;
                 }
 
-                averageTimeMillis = (averageTimeMillis * (eventListSize + removedEventsList.size()) - totalRemovedTime) / eventListSize;
-
-                if(updateShortest) {
-                    recalculateShortestTime(prefs);
+                if(removedTime == getLongestEvent(prefs)) {
+                    updateLongest = true;
                 }
-
-                if(updateLongest) {
-                    recalculateLongestTime(prefs);
-                }
-
-                setAverageTime(prefs, averageTimeMillis);
             }
 
-            calculateAndSetStdDev(prefs);
-            calculateAndSetMoe(prefs);
+            averageTimeMillis = (averageTimeMillis * (eventListSize + removedEventsList.size()) - totalRemovedTime) / eventListSize;
+
+            if(updateShortest) {
+                recalculateShortestTime(prefs);
+            }
+
+            if(updateLongest) {
+                recalculateLongestTime(prefs);
+            }
+
+            setAverageTime(prefs, averageTimeMillis);
         }
+
+        calculateAndSetStdDev(prefs);
+        calculateAndSetMoe(prefs);
     }
 
     public static void resetStats(SharedPreferences prefs) {

@@ -3,26 +3,25 @@ package com.example.android.eventtimer.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.example.android.eventtimer.MainActivity;
 import com.example.android.eventtimer.R;
 
-import static com.example.android.eventtimer.utils.EventsManager.PREFS;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private SparseBooleanArray selectedEventIds;
+    private List<Integer> selectedEventIds;
 
     public EventListAdapter(Context context, SharedPreferences prefs) {
         super(context, R.layout.time_row, EventsManager.getAllEvents(prefs));
-        selectedEventIds = new SparseBooleanArray();
+        selectedEventIds = new ArrayList<>();
     }
 
     private class ViewHolder {
@@ -51,31 +50,29 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        viewHolder.label.setText(event.getLabelText());
+        viewHolder.label.setText(event.getLabel());
         viewHolder.time.setText(event.getFormattedDuration());
 
         return convertView;
     }
 
     public void toggleSelection(int position) {
-        selectEvent(position, !selectedEventIds.get(position));
+        selectedEventIds.add(position);
+        notifyDataSetChanged();
     }
 
     public void clearSelection() {
-        selectedEventIds = new SparseBooleanArray();
+        selectedEventIds = new ArrayList<>();
         notifyDataSetChanged();
     }
 
-    private void selectEvent(int position, boolean selected) {
-        if(selected) {
-            selectedEventIds.put(position, true);
-        } else {
-            selectedEventIds.delete(position);
+    public void selectAll() {
+        for(int i = 0; i < getCount(); i++) {
+            selectedEventIds.add(i);
         }
-        notifyDataSetChanged();
     }
 
-    public SparseBooleanArray getSelectedIds() {
+    public List<Integer> getSelectedIds() {
         return selectedEventIds;
     }
 }
