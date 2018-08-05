@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.example.android.eventtimer.utils.StatsManager;
 import com.example.android.eventtimer.utils.Timer;
 
-import static com.example.android.eventtimer.utils.Constants.SHOW_BUTTONS_DURATION;
+import static com.example.android.eventtimer.utils.Constants.ANIMATION_DURATION;
 import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
 import static com.example.android.eventtimer.utils.Constants.USE_LIST_STATS;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
@@ -95,21 +95,6 @@ public class StatsFragment extends Fragment {
         toggleExpansion(statsBar, isExpanded);
     }
 
-    public void useListStats(boolean b) {
-        useListStats = b;
-        prefs.edit().putBoolean(USE_LIST_STATS, b).apply();
-        if(b) {
-            recalculateListStats();
-        }
-    }
-
-    public void addEvent() {
-        long t = System.currentTimeMillis();
-        refreshStats();
-
-        System.out.println("SF.addToList: "+(System.currentTimeMillis()-t)+"ms");
-    }
-
     public void refreshStats() {
         String shortestEventText = Timer.formatDuration(StatsManager.getShortestEvent(prefs));
 
@@ -134,20 +119,14 @@ public class StatsFragment extends Fragment {
         refreshStats();
     }
 
-    public void recalculateListStats() {
-        StatsManager.recalculateListStats(prefs);
-
-        refreshStats();
-    }
-
     private void toggleExpansion(View v, boolean isExpanded){
         TransitionSet transition = new TransitionSet();
-        transition.setDuration(SHOW_BUTTONS_DURATION);
+        transition.setDuration(ANIMATION_DURATION);
         transition.setOrdering(TransitionSet.ORDERING_TOGETHER);
         transition.setInterpolator(new DecelerateInterpolator());
         transition.addTransition(new ChangeBounds())
-                .addTransition(new Fade(Fade.IN).setDuration(SHOW_BUTTONS_DURATION))
-                .addTransition(new Fade(Fade.OUT).setDuration(SHOW_BUTTONS_DURATION /2));
+                .addTransition(new Fade(Fade.IN).setDuration(ANIMATION_DURATION))
+                .addTransition(new Fade(Fade.OUT).setDuration(ANIMATION_DURATION /2));
 
         TransitionManager.beginDelayedTransition((ViewGroup) v.getRootView().findViewById(R.id.container), transition);
 

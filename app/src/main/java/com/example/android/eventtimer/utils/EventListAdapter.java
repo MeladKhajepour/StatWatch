@@ -13,6 +13,7 @@ import com.example.android.eventtimer.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {
@@ -20,7 +21,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     private List<Integer> selectedEventIds;
 
     public EventListAdapter(Context context, SharedPreferences prefs) {
-        super(context, R.layout.time_row, EventsManager.getAllEvents(prefs));
+        super(context, R.layout.time_row, EventsManager.getAllEvents(prefs)); //todo improve time row layout
         selectedEventIds = new ArrayList<>();
     }
 
@@ -50,8 +51,8 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        viewHolder.label.setText(event.getLabel());
-        viewHolder.time.setText(event.getFormattedDuration());
+        viewHolder.label.setText(Objects.requireNonNull(event).getLabel());
+        viewHolder.time.setText(Timer.formatDuration(event.getDurationMillis()));
 
         return convertView;
     }
@@ -64,12 +65,6 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     public void clearSelection() {
         selectedEventIds = new ArrayList<>();
         notifyDataSetChanged();
-    }
-
-    public void selectAll() {
-        for(int i = 0; i < getCount(); i++) {
-            selectedEventIds.add(i);
-        }
     }
 
     public List<Integer> getSelectedIds() {

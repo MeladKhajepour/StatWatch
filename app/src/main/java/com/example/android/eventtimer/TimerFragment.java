@@ -10,27 +10,24 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
-import android.transition.Fade;
-import android.transition.TransitionManager;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.eventtimer.utils.Timer;
 import com.example.android.eventtimer.utils.TimerService;
+import com.example.android.eventtimer.utils.TransitionUtils;
 
-import static com.example.android.eventtimer.utils.Constants.HIDE_BUTTONS_DURATION;
+import static com.example.android.eventtimer.utils.Constants.ANIMATION_DURATION;
 import static com.example.android.eventtimer.utils.Constants.IS_PAUSED;
 import static com.example.android.eventtimer.utils.Constants.IS_READY;
 import static com.example.android.eventtimer.utils.Constants.IS_TIMING;
-import static com.example.android.eventtimer.utils.Constants.SHOW_BUTTONS_DURATION;
 import static com.example.android.eventtimer.utils.Constants.TIMER_FRAGMENT_RECEIVER;
 import static com.example.android.eventtimer.utils.Constants.TIMER_STATE;
 import static com.example.android.eventtimer.utils.Constants.TV_TIME;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
+import static com.example.android.eventtimer.utils.TransitionUtils.transitionStartBtn;
 
 public class TimerFragment extends Fragment {
     private SharedPreferences prefs;
@@ -44,7 +41,7 @@ public class TimerFragment extends Fragment {
     private ServiceConnection connection = new ServiceConnection() {
 
         @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
+        public void onServiceConnected(ComponentName className, IBinder service) { //entering app again when timer running already
             ts = ((TimerService.TimerBinder)service).getService();
 
             switch (prefs.getString(TIMER_STATE, IS_READY)) {
@@ -58,7 +55,8 @@ public class TimerFragment extends Fragment {
                     break;
 
                 default:
-                    break;
+                    readyTimer();
+                    break; // todo fix the time showing after adding event from notification and entering app again (might not have to do after data binding)
             }
         }
 
@@ -106,7 +104,6 @@ public class TimerFragment extends Fragment {
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
         setupViews();
-        setupHandlers();
     }
 
     @Override
@@ -136,28 +133,31 @@ public class TimerFragment extends Fragment {
         }
     }
 
+    /*
+     * Start of public methods
+     */
+
     public void clearTimer() {
-        ts.resetIndex();
+        ts.clearTimer();
         onTimerReset();
     }
 
-    public void undoResetIndex() {
-        ts.undoResetIndex();
-    }
+    /*
+     * End of public methods
+     */
 
     private void setupViews() {
         MainActivity app = (MainActivity) requireContext();
 
-        timerTv = app.findViewById(R.id.timer_textview);
-        buttonBar = app.findViewById(R.id.timer_buttons);
+        timerTv = app.findViewById(R.id.timer_textview);// todo data binding
+        buttonBar = app.findViewById(R.id.button_bar);
         resetBtn = app.findViewById(R.id.reset_button);
-        startBtn = app.findViewById(R.id.start_pause_button);
-        addBtn = app.findViewById(R.id.add_event_button);
-    }
-
-    private void setupHandlers() {
         resetBtn.setOnClickListener(btnListener);
+
+        startBtn = app.findViewById(R.id.start_pause_button);
         startBtn.setOnClickListener(btnListener);
+
+        addBtn = app.findViewById(R.id.add_event_button);
         addBtn.setOnClickListener(btnListener);
     }
 
@@ -183,8 +183,7 @@ public class TimerFragment extends Fragment {
 
     private void addEvent() {
         long t = System.currentTimeMillis();
-        ts.createEvent();
-        ((MainActivity) requireContext()).onEventAdded();
+        ts.addEvent();
         onEventAdded();
         System.out.println("TF.addToList: "+(System.currentTimeMillis()-t)+"ms");
     }
@@ -199,137 +198,48 @@ public class TimerFragment extends Fragment {
         onTimerResume();
     }
 
-    private void onTimerStart() {
-        startBtn.setBackground(getResources().getDrawable(R.drawable.red_to_grey_transition));
-        TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
-        transition.startTransition(SHOW_BUTTONS_DURATION);
+    private void readyTimer() {
+        timerTv.setText(Timer.formatDuration(0));
 
-        showPauseBtn();
-        showResetBtn();
+        transitionStartBtn(requireContext(), startBtn, R.drawable.grey_to_red_transition);
+        TransitionUtils.onTimerReset(buttonBar, resetBtn, startBtn, addBtn);
+    }
+
+    private void onTimerStart() {
+        transitionStartBtn(requireContext(), startBtn, R.drawable.red_to_grey_transition);
+
+        TransitionUtils.onTimerStart(buttonBar, resetBtn, startBtn);
     }
 
     private void onTimerPause() {
-        startBtn.setBackground(getResources().getDrawable(R.drawable.grey_to_background_transition));
-        TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
-        transition.startTransition(SHOW_BUTTONS_DURATION);
-        showAddBtn();
-        showStartBtn();
-        showDivider();
+        transitionStartBtn(requireContext(), startBtn, R.drawable.grey_to_background_transition);
+
+        TransitionUtils.onTimerPause(buttonBar, startBtn, addBtn);
     }
 
     private void onTimerResume() {
         TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
-        transition.reverseTransition(SHOW_BUTTONS_DURATION);
-        hideAddBtn();
-        showPauseBtn();
-        hideDivider();
+        transition.reverseTransition(ANIMATION_DURATION);
+
+        TransitionUtils.onTimerResume(buttonBar, startBtn, addBtn);
     }
 
     private void onTimerReset() {
         if(addBtn.getVisibility() == View.VISIBLE) {
-            startBtn.setBackground(getResources().getDrawable(R.drawable.background_to_red_transition));
-            TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
-            transition.startTransition(SHOW_BUTTONS_DURATION);
+            transitionStartBtn(requireContext(), startBtn, R.drawable.background_to_red_transition);
 
         } else if(addBtn.getVisibility() == View.INVISIBLE) {
-            startBtn.setBackground(getResources().getDrawable(R.drawable.grey_to_red_transition));
-            TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
-            transition.startTransition(SHOW_BUTTONS_DURATION);
+            transitionStartBtn(requireContext(), startBtn, R.drawable.grey_to_red_transition);
         }
 
-        hideResetBtn();
-        hideAddBtn();
-        showStartBtn();
-        hideDivider();
+        TransitionUtils.onTimerReset(buttonBar, resetBtn, startBtn, addBtn);
     }
 
     private void onEventAdded() {
-        startBtn.setBackground(getResources().getDrawable(R.drawable.background_to_red_transition));
-        TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
-        transition.startTransition(SHOW_BUTTONS_DURATION);
-        hideResetBtn();
-        hideAddBtn();
-        showStartBtn();
-    }
+        transitionStartBtn(requireContext(), startBtn, R.drawable.background_to_red_transition);
 
-    private void showResetBtn() {
-        Fade transition = new Fade(Fade.IN);
-        transition.setDuration(SHOW_BUTTONS_DURATION);
-        transition.setInterpolator(new DecelerateInterpolator());
-
-        TransitionManager.beginDelayedTransition(buttonBar, transition);
-
-        resetBtn.setVisibility(View.VISIBLE);
-
-        buttonBar.requestLayout();
-    }
-
-    private void showPauseBtn() {
-        ((ImageView)startBtn.getChildAt(1)).setImageResource(R.drawable.pause_icon);
-    }
-
-    private void showAddBtn() {
-        Fade transition = new Fade(Fade.IN);
-        transition.setDuration(SHOW_BUTTONS_DURATION);
-        transition.setInterpolator(new DecelerateInterpolator());
-
-        TransitionManager.beginDelayedTransition(buttonBar, transition);
-
-        addBtn.setVisibility(View.VISIBLE);
-
-        buttonBar.requestLayout();
-    }
-
-    private void showStartBtn() {
-        ((ImageView)startBtn.getChildAt(1)).setImageResource(R.drawable.start_icon);
-    }
-
-    private void showDivider() {
-        Fade transition = new Fade(Fade.IN);
-        transition.setDuration(SHOW_BUTTONS_DURATION);
-        transition.setInterpolator(new DecelerateInterpolator());
-
-        TransitionManager.beginDelayedTransition(buttonBar, transition);
-
-        startBtn.getChildAt(0).setVisibility(View.VISIBLE);
-
-        buttonBar.requestLayout();
-    }
-
-    private void hideResetBtn() {
-        Fade transition = new Fade(Fade.OUT);
-        transition.setDuration(HIDE_BUTTONS_DURATION);
-        transition.setInterpolator(new DecelerateInterpolator());
-
-        TransitionManager.beginDelayedTransition(buttonBar, transition);
-
-        resetBtn.setVisibility(View.INVISIBLE);
-
-        buttonBar.requestLayout();
-    }
-
-    private void hideAddBtn() {
-        Fade transition = new Fade(Fade.OUT);
-        transition.setDuration(HIDE_BUTTONS_DURATION);
-        transition.setInterpolator(new DecelerateInterpolator());
-
-        TransitionManager.beginDelayedTransition(buttonBar, transition);
-
-        addBtn.setVisibility(View.INVISIBLE);
-
-        buttonBar.requestLayout();
-    }
-
-    private void hideDivider() {
-        Fade transition = new Fade(Fade.OUT);
-        transition.setDuration(HIDE_BUTTONS_DURATION);
-        transition.setInterpolator(new DecelerateInterpolator());
-
-        TransitionManager.beginDelayedTransition(buttonBar, transition);
-
-        startBtn.getChildAt(0).setVisibility(View.INVISIBLE);
-
-        buttonBar.requestLayout();
+        TransitionUtils.onEventAdded(buttonBar, resetBtn, startBtn, addBtn);
+        ((MainActivity) requireContext()).onEventAdded();
     }
 
     private BroadcastReceiver updateTime = new BroadcastReceiver() { // from

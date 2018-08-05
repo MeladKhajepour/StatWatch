@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,9 +16,9 @@ import com.example.android.eventtimer.utils.Event;
 import com.example.android.eventtimer.utils.EventListAdapter;
 import com.example.android.eventtimer.utils.EventsManager;
 import com.example.android.eventtimer.utils.StatsManager;
+import com.example.android.eventtimer.utils.Timer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
@@ -45,7 +44,25 @@ public class EventsFragment extends Fragment {
         init(context);
     }
 
-    public void init(Context context) {
+    /*
+     * Start of public methods
+     */
+
+    public void refreshList() {
+        eventListAdapter.notifyDataSetChanged();
+    }
+
+    public void clearEvents() {
+        List<Event> selectedEvents = new ArrayList<>(EventsManager.getAllEvents(prefs));
+
+        removeSelectedEvents(selectedEvents);
+    }
+
+    /*
+     * End of public methods
+     */
+
+    private void init(Context context) {
         MainActivity app = (MainActivity) context;
         eventListAdapter = new EventListAdapter(context, prefs);
         listView = app.findViewById(R.id.events_list);
@@ -64,7 +81,7 @@ public class EventsFragment extends Fragment {
                 eventListAdapter.toggleSelection(position);
             }
 
-            @Override //When user selects an action from the action bar after selecting events in list
+            @Override
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                 switch (item.getItemId()) {
 
@@ -97,41 +114,30 @@ public class EventsFragment extends Fragment {
         });
     }
 
-    public void refreshList() {
-        eventListAdapter.notifyDataSetChanged();
-    }
-
-    public void clearEvents() {
-        List<Event> selectedEvents = new ArrayList<>(EventsManager.getAllEvents(prefs));
-        eventListAdapter.selectAll();
-
-        removeSelectedEvents(selectedEvents);
-    }
-
     private void removeSelectedEvents(List<Event> selectedEvents) {
         EventsManager.removeSelectedEvents(prefs, selectedEvents);
         StatsManager.updateEventsRemoved(prefs, selectedEvents);
+        eventListAdapter.clearSelection();
         refreshList();
-        ((MainActivity) getContext()).updateStatsFragment();
 
         showUndoSnackbar(selectedEvents);
 
-        eventListAdapter.clearSelection();
+        ((MainActivity) requireContext()).onEventsRemoved();
     }
 
     private List<Event> getSelectedEvents() {
-        List<Integer> selectedEvents = eventListAdapter.getSelectedIds();
-        List<Event> selectedEventsList = new ArrayList<>();
+        List<Integer> selectedEventIds = eventListAdapter.getSelectedIds();
+        List<Event> selectedEvents = new ArrayList<>();
 
-        for(Integer selected : selectedEvents) {
-            selectedEventsList.add(eventListAdapter.getItem(selected));
+        for(Integer selectedEventId : selectedEventIds) {
+            selectedEvents.add(eventListAdapter.getItem(selectedEventId));
         }
 
-        return selectedEventsList;
+        return selectedEvents;
     }
 
     private void showUndoSnackbar(final List<Event> selectedEvents) {
-        final List<Integer> indices = eventListAdapter.getSelectedIds();
+        final List<Integer> selectedEventIds = eventListAdapter.getSelectedIds();
         int numRemovedEvents = selectedEvents.size();
 
         String text = numRemovedEvents == 1 ? " event removed" : " events removed";
@@ -140,16 +146,17 @@ public class EventsFragment extends Fragment {
         snackbar.setAction("Undo", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                undoRemoveEvents(indices, selectedEvents);
+                undoRemoveEvents(selectedEventIds, selectedEvents);
             }
         });
         snackbar.show();
     }
 
-    private void undoRemoveEvents(List<Integer> removedEventIndices, List<Event> selectedEvents) {
-        EventsManager.undoRemoveEvents(prefs, selectedEvents, removedEventIndices);
+    private void undoRemoveEvents(List<Integer> selectedEventIds, List<Event> selectedEvents) {
+        EventsManager.undoRemoveEvents(prefs, selectedEvents, selectedEventIds);
         StatsManager.undoRemoveEvents(prefs);
+        Timer.undoResetTimerIndex(prefs);
         refreshList();
-        ((MainActivity) getContext()).undo();
+        ((MainActivity) requireContext()).onUndo();
     }
 }

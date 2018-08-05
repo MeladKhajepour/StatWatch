@@ -10,14 +10,11 @@ public class Event {
     }
 
     public String getLabel() {
-        return "Event " + String.valueOf(index);
+
+        return "Time " + String.valueOf(index);
     }
 
     public long getDurationMillis() {
         return durationMillis;
-    }
-
-    public String getFormattedDuration() {
-        return Timer.formatDuration(durationMillis);
     }
 }

@@ -18,16 +18,20 @@ import android.support.v4.app.NotificationCompat;
 import com.example.android.eventtimer.MainActivity;
 import com.example.android.eventtimer.R;
 
+import java.util.Objects;
+
 import static com.example.android.eventtimer.utils.Constants.ADD_EVENT;
+import static com.example.android.eventtimer.utils.Constants.FRAGMENT_REFRESH_RATE;
+import static com.example.android.eventtimer.utils.Constants.IS_PAUSED;
 import static com.example.android.eventtimer.utils.Constants.IS_READY;
-import static com.example.android.eventtimer.utils.Constants.IS_STOPPED;
 import static com.example.android.eventtimer.utils.Constants.IS_TIMING;
+import static com.example.android.eventtimer.utils.Constants.NOTIFICATION_DISMISSED;
+import static com.example.android.eventtimer.utils.Constants.NOTIFICATION_REFRESH_RATE;
+import static com.example.android.eventtimer.utils.Constants.PAUSE_TIMER;
 import static com.example.android.eventtimer.utils.Constants.RESET_TIMER;
 import static com.example.android.eventtimer.utils.Constants.RESUME_TIMER;
 import static com.example.android.eventtimer.utils.Constants.START_TIMER;
-import static com.example.android.eventtimer.utils.Constants.PAUSE_TIMER;
 import static com.example.android.eventtimer.utils.Constants.TIMER_FRAGMENT_RECEIVER;
-import static com.example.android.eventtimer.utils.Constants.TIMER_STATE;
 import static com.example.android.eventtimer.utils.Constants.TV_TIME;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
 
@@ -37,7 +41,6 @@ public class TimerService extends Service {
     private SharedPreferences prefs;
     private Context context;
     private Handler handler = new Handler();
-    private NotificationManager notificationManager;
     private int notificationId = 1;
     private boolean inForeground = false;
 
@@ -51,16 +54,16 @@ public class TimerService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        context = getBaseContext(); //base context for the fragment activity and not application context
+        context = getBaseContext();
         prefs = context.getSharedPreferences(PREFS, MODE_PRIVATE);
         timer = new Timer(prefs);
-        notificationManager  = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         IntentFilter intentFilters = new IntentFilter();
         intentFilters.addAction(START_TIMER);
         intentFilters.addAction(PAUSE_TIMER);
         intentFilters.addAction(RESET_TIMER);
         intentFilters.addAction(ADD_EVENT);
+        intentFilters.addAction(NOTIFICATION_DISMISSED);
         context.registerReceiver(notificationReceivers, intentFilters);
     }
 
@@ -89,15 +92,16 @@ public class TimerService extends Service {
 
     public void resetTimer() {
         timer.reset();
+
+        handler.removeCallbacks(autoRefreshFragment);
         updateFragmentTime();
     }
 
-    public void createEvent() {
-        Event event = timer.createEvent();
+    public void addEvent() {
+        Event event = timer.addEvent();
 
         EventsManager.addToList(prefs, event);
         StatsManager.calculateStats(prefs, event);
-        timer.reset();
         updateFragmentTime();
     }
 
@@ -110,21 +114,16 @@ public class TimerService extends Service {
         updateFragmentTime();
     }
 
-    public void resetIndex() {
-        timer.resetTimerIndex();
-        timer.reset();
-        handler.removeCallbacks(autoRefreshFragment);
-        updateFragmentTime();
-    }
+    public void clearTimer() {
+        resetTimer();
 
-    public void undoResetIndex() {
-        timer.undoResetTimerIndex();
+        Timer.resetTimerIndex(prefs);
     }
 
     private Runnable autoRefreshFragment = new Runnable() {
         public void run() {
             updateFragmentTime();
-            handler.postDelayed(this, 10);
+            handler.postDelayed(this, FRAGMENT_REFRESH_RATE);
         }
     };
 
@@ -137,20 +136,18 @@ public class TimerService extends Service {
     private Runnable startNotifications = new Runnable() {
         @Override
         public void run() {
-            if(inForeground) {
-                notificationManager.notify(notificationId, buildNotification().build());
+            NotificationManager notificationManager  = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if(inForeground && notificationManager != null) {
+                notificationManager.notify(notificationId, buildNotification("StatWatch is running. Tap to return or expand for actions").build());
             } else {
-                startForeground(notificationId, buildNotification().build());
+                startForeground(notificationId, buildNotification("StatWatch is running. Tap to return or expand for actions").build());
                 inForeground = true;
             }
 
-            handler.postDelayed(this, 500);
+            handler.postDelayed(this, NOTIFICATION_REFRESH_RATE);
         }
     };
-
-    private NotificationCompat.Builder buildNotification() {
-        return buildNotification("Tap to return or expand for more actions");
-    }
 
     private NotificationCompat.Builder buildNotification(String text) {
         String channelId = "channel-01";
@@ -158,10 +155,14 @@ public class TimerService extends Service {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            String channelName = "Event Timer";
-            NotificationChannel mChannel = new NotificationChannel(
-                    channelId, channelName, importance);
-            notificationManager.createNotificationChannel(mChannel);
+            String channelName = "StatWatch";
+            NotificationChannel mChannel = new NotificationChannel(channelId, channelName, importance);
+
+            NotificationManager notificationManager  = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(mChannel);
+            }
         }
 
         Intent intent = new Intent(this, MainActivity.class);
@@ -174,54 +175,74 @@ public class TimerService extends Service {
                 .setContentIntent(pendingIntent)
                 .setOnlyAlertOnce(true);
 
-        if(Timer.getState(prefs).equals(IS_READY)) {
-            mBuilder.addAction(R.drawable.start_icon, "Start timer", startTimerAction());
-        }
+        return addActions(mBuilder);
+    }
 
-        if(prefs.getString(TIMER_STATE, IS_STOPPED).equals(IS_STOPPED)
-                || prefs.getString(TIMER_STATE, IS_TIMING).equals(IS_TIMING)) {
-            mBuilder.addAction(R.drawable.reset_icon, "Reset timer", resumeTimerAction());
-        }
+    private NotificationCompat.Builder addActions(NotificationCompat.Builder mBuilder) {
 
-        if(prefs.getString(TIMER_STATE, IS_TIMING).equals(IS_TIMING)) {
-            mBuilder.addAction(R.drawable.stop_icon, "Stop timer", pauseTimerAction());
-        }
+        switch (Timer.getState(prefs)) {
 
-        if(prefs.getString(TIMER_STATE, IS_STOPPED).equals(IS_STOPPED)) {
-            mBuilder.addAction(R.drawable.add_icon, "Add event", addEvent());
+            case IS_TIMING:
+                mBuilder.addAction(R.drawable.reset_icon, "Reset", resetTimerAction());
+                mBuilder.addAction(R.drawable.pause_icon, "Pause", pauseTimerAction());
+                mBuilder.addAction(R.drawable.add_icon, "Add", addEventAction());
+                break;
+
+            case IS_PAUSED:
+                mBuilder.addAction(R.drawable.reset_icon, "Reset", resetTimerAction());
+                mBuilder.addAction(R.drawable.start_icon, "Resume", resumeTimerAction());
+                mBuilder.addAction(R.drawable.add_icon, "Add", addEventAction());
+
+                mBuilder.setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(NOTIFICATION_DISMISSED), 0));
+                break;
+
+            case IS_READY:
+                mBuilder.addAction(R.drawable.start_icon, "Start", startTimerAction());
+
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        ((NotificationManager) Objects.requireNonNull(
+//                                context.getSystemService(Context.NOTIFICATION_SERVICE))
+//                        ).cancel(notificationId);
+//                    }
+//                }, 3000);
+                break;
         }
 
         return mBuilder;
     }
 
-    private PendingIntent startTimerAction() {
-        return PendingIntent.getBroadcast(context, 0, new Intent(START_TIMER), 0);
+    private PendingIntent resetTimerAction() {
+        return PendingIntent.getBroadcast(context, 0, new Intent(RESET_TIMER), 0);
     }
 
     private PendingIntent pauseTimerAction() {
         return PendingIntent.getBroadcast(context, 0, new Intent(PAUSE_TIMER), 0);
     }
 
-    private PendingIntent resumeTimerAction() {
-        return PendingIntent.getBroadcast(context, 0, new Intent(RESET_TIMER), 0);
-    }
-
-    private PendingIntent resetTeimer() {
-        return PendingIntent.getBroadcast(context, 0, new Intent(RESET_TIMER), 0);
-    }
-
-    private PendingIntent addEvent() {
+    private PendingIntent addEventAction() {
         return PendingIntent.getBroadcast(context, 0, new Intent(ADD_EVENT), 0);
+    }
+
+    private PendingIntent resumeTimerAction() {
+        return PendingIntent.getBroadcast(context, 0, new Intent(RESUME_TIMER), 0);
+    }
+
+    private PendingIntent startTimerAction() {
+        return PendingIntent.getBroadcast(context, 0, new Intent(START_TIMER), 0);
     }
 
     //
     //From notification actions
     //
-    private BroadcastReceiver notificationReceivers = new BroadcastReceiver() {
+    private final BroadcastReceiver notificationReceivers = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            NotificationManager notificationManager  = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            Objects.requireNonNull(notificationManager);
 
-            switch (intent.getAction()) {
+            switch (Objects.requireNonNull(intent.getAction())) {
                 case START_TIMER:
                     timer.start();
                     handler.post(startNotifications);
@@ -230,28 +251,33 @@ public class TimerService extends Service {
                 case PAUSE_TIMER:
                     timer.pause();
                     stopNotifications();
-                    notificationManager.notify(notificationId, buildNotification("Timer paused. " +
-                            "Add event or swipe away to reset.").build());
+                    notificationManager.notify(notificationId, buildNotification("StatWatch is paused. " +
+                            "Add event or swipe away to reset").build());
                     break;
 
-                case RESUME_TIMER: // todo
+                case RESUME_TIMER:
                     timer.resume();
-                    stopNotifications();
-                    notificationManager.notify(notificationId, buildNotification().build());
+                    handler.post(startNotifications);
+                    notificationManager.notify(notificationId, buildNotification("StatWatch is running. " +
+                            "Tap to return or expand for actions").build());
                     break;
 
                 case RESET_TIMER:
                     timer.reset();
                     stopNotifications();
-                    notificationManager.notify(notificationId, buildNotification().build());
+                    notificationManager.notify(notificationId, buildNotification("StatWatch reset").build());
                     break;
 
                 case ADD_EVENT:
-                    Timer.setState(prefs, IS_READY);
                     notificationManager.notify(notificationId, buildNotification("Time of " +
                             Timer.formatDuration(timer.getTime()) + " has been added").build());
 
-                    createEvent();
+                    stopNotifications();
+                    addEvent();
+                    break;
+
+                case NOTIFICATION_DISMISSED:
+                    resetTimer();
                     break;
             }
         }
@@ -280,7 +306,7 @@ public class TimerService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
 
-        if(prefs.getString(TIMER_STATE, IS_TIMING).equals(IS_TIMING)) {
+        if(Timer.getState(prefs).equals(IS_TIMING)) {
             handler.post(startNotifications);
             handler.removeCallbacks(autoRefreshFragment);
         }

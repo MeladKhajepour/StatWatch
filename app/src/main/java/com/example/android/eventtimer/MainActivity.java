@@ -7,6 +7,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Objects;
+
 import static com.example.android.eventtimer.utils.Constants.EVENTS_FRAGMENT;
 import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
 import static com.example.android.eventtimer.utils.Constants.STATS_FRAGMENT;
@@ -22,11 +24,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("onCreate");
         setContentView(R.layout.main_activity);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
         setupFragments();
     }
@@ -43,7 +44,9 @@ public class MainActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.action_reset:
-                onMenuReset();
+                eventsFragment.clearEvents();
+                statsFragment.resetStats();
+                timerFragment.clearTimer();
                 return true;
 
             case R.id.action_more:
@@ -55,40 +58,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupFragments() {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        boolean isExpanded = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(STATS_EXPANSION, false);
-        Bundle args = new Bundle();
-        args.putBoolean(STATS_EXPANSION, isExpanded);
-
-        timerFragment = new TimerFragment();
-        eventsFragment = new EventsFragment(); //todo here
-        statsFragment = new StatsFragment();
-        statsFragment.setArguments(args);
-
-        ft.add(timerFragment, TIMER_FRAGMENT)
-                .add(eventsFragment, EVENTS_FRAGMENT)
-                .add(statsFragment, STATS_FRAGMENT)
-        .commit();
-    }
-
-    private void onMenuReset() {
-        eventsFragment.clearEvents();
-        statsFragment.resetStats();
-        timerFragment.clearTimer();
-    }
+    /*
+     * Start of public methods
+     */
 
     public void onEventAdded() {
         eventsFragment.refreshList();
         statsFragment.refreshStats();
     }
 
-    public void updateStatsFragment() {
+    public void onEventsRemoved() {
         statsFragment.refreshStats();
     }
 
-    public void undo() {
+    public void onUndo() {
         statsFragment.refreshStats();
-        timerFragment.undoResetIndex();
+    }
+
+    /*
+     * End of public methods
+     */
+
+    private void setupFragments() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        boolean isExpanded = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(STATS_EXPANSION, false);// todo remove after impl new stats
+        Bundle args = new Bundle();
+        args.putBoolean(STATS_EXPANSION, isExpanded);
+
+        timerFragment = new TimerFragment();
+        eventsFragment = new EventsFragment();
+        statsFragment = new StatsFragment(); //todo implement new stats controller
+        statsFragment.setArguments(args);
+
+        ft.add(timerFragment, TIMER_FRAGMENT)
+                .add(eventsFragment, EVENTS_FRAGMENT)
+                .add(statsFragment, STATS_FRAGMENT)
+        .commit();
     }
 }

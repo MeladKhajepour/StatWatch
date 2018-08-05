@@ -20,7 +20,6 @@ public class EventsManager {
     public static void addToList(SharedPreferences prefs, Event event) {
         eventList.add(0, event);
         saveEvents(prefs);
-
     }
 
     public static void undoRemoveEvents(SharedPreferences prefs, List<Event> removedEvents, List<Integer> removedEventIndices) {
