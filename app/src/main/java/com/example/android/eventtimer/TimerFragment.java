@@ -7,73 +7,115 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.IBinder;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.eventtimer.utils.Timer;
 import com.example.android.eventtimer.utils.TimerService;
-import com.example.android.eventtimer.utils.UpdateUIListener;
+import com.example.android.eventtimer.utils.TransitionUtils;
 
+import static com.example.android.eventtimer.utils.Constants.ANIMATION_DURATION;
+import static com.example.android.eventtimer.utils.Constants.IS_PAUSED;
+import static com.example.android.eventtimer.utils.Constants.IS_READY;
+import static com.example.android.eventtimer.utils.Constants.IS_TIMING;
+import static com.example.android.eventtimer.utils.Constants.TIMER_FRAGMENT_RECEIVER;
+import static com.example.android.eventtimer.utils.Constants.TIMER_STATE;
+import static com.example.android.eventtimer.utils.Constants.TV_TIME;
 import static com.example.android.eventtimer.utils.EventsManager.PREFS;
-
-/*
-*
-* This fragment contains the UI components related to the timer and its functionality. This fragment
-* controls TimerService based on user-selected actions for timer functionality, and sends events to
-* MainActivity if users want to add the time.
-*
- */
+import static com.example.android.eventtimer.utils.TransitionUtils.transitionStartBtn;
 
 public class TimerFragment extends Fragment {
-    public static final String TIMER_FRAGMENT_RECEIVER = "com.example.android.eventtimer.TimerFragment";
-    public static final String START_TIMER_COMMAND = "start";
-    public static final String STOP_TIMER_COMMAND = "stop";
-    public static final String RESET_TIMER_COMMAND = "reset";
-    public static final String ADD_EVENT_COMMAND = "addEventCommand";
-    public static final String TIMER_STATE = "timerState";
-    public static final String TIMING_STATE = "stateTiming";
-    public static final String RESET_STATE = "stateReset";
-    public static final String STOPPED_STATE = "stateStopped";
-    public static final String TV_TIME = "tvTime";
-    public static final String START_TIME_MILLIS = "startTimeMillis";
-
-    private TimerService ts;
-    private boolean bound = false;
-    private Intent intent;
-    private TextView timerTv;
-    private FloatingActionButton mainBtn;
-    private FloatingActionButton resetBtn;
-    private UpdateUIListener mainActivityListener;
-    private Context context;
     private SharedPreferences prefs;
+    private TimerService ts;
+    private boolean bound;
+    private TextView timerTv;
+    private LinearLayout buttonBar;
+    private FrameLayout resetBtn;
+    private FrameLayout startBtn;
+    private FrameLayout addBtn;
+    private ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) { //entering app again when timer running already
+            ts = ((TimerService.TimerBinder)service).getService();
+
+            switch (prefs.getString(TIMER_STATE, IS_READY)) {
+
+                case IS_TIMING:
+                    continueTiming();
+                    break;
+
+                case IS_PAUSED:
+                    reloadPausedState();
+                    break;
+
+                default:
+                    readyTimer();
+                    break; // todo fix the time showing after adding event from notification and entering app again (might not have to do after data binding)
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg) {
+            ts = null;
+        }
+    };
+
+    private View.OnClickListener btnListener = new View.OnClickListener() {
+
+        @Override
+        public void onClick(View view) {
+            switch (view.getId()) {
+                case R.id.reset_button:
+                    resetTimer();
+                    break;
+
+                case R.id.start_pause_button:
+
+                    switch (Timer.getState(prefs)) {
+                        case IS_TIMING:
+                            pauseTimer();
+                            break;
+                        case IS_PAUSED:
+                            resumeTimer();
+                            break;
+                        default:
+                            startTimer();
+                            break;
+                    }
+                    break;
+
+                case R.id.add_event_button:
+                    addEvent();
+                    break;
+            }
+        }
+    };
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        this.context = context;
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        intent = new Intent(context, TimerService.class);
 
-        try {
-            mainActivityListener = (UpdateUIListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement TimerFragmentInterface");
-        }
+        setupViews();
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onResume() {
+        super.onResume();
+        MainActivity app = (MainActivity) requireContext();
 
-        context.registerReceiver(updateFragmentReceiver, new IntentFilter(TIMER_FRAGMENT_RECEIVER));
-        context.startService(intent);
+        app.registerReceiver(updateTime, new IntentFilter(TIMER_FRAGMENT_RECEIVER));
+        app.startService( new Intent(app, TimerService.class));
 
         if(!bound) {
-            context.bindService(intent, conn, Context.BIND_AUTO_CREATE);
+            app.bindService(new Intent(app, TimerService.class), connection, Context.BIND_AUTO_CREATE);
             bound = true;
         }
     }
@@ -81,157 +123,130 @@ public class TimerFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        MainActivity app = (MainActivity) requireContext();
 
-        context.unregisterReceiver(updateFragmentReceiver);
+        app.unregisterReceiver(updateTime);
 
         if(bound) {
-            context.unbindService(conn);
+            app.unbindService(connection);
             bound = false;
         }
     }
 
-    public void init(MainActivity app) {
-        setupViews(app);
-        setupHandlers();
-    }
+    /*
+     * Start of public methods
+     */
 
-    private void setupViews(MainActivity app) {
-        timerTv = app.findViewById(R.id.timer_textview);
-        mainBtn = app.findViewById(R.id.timer_btn);
-        resetBtn = app.findViewById(R.id.timer_reset_btn);
-    }
-
-    private void setupHandlers() {
-        mainBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                switch (prefs.getString(TIMER_STATE, RESET_STATE)) {
-
-                    case RESET_STATE:
-                        startTimerCommand();
-                        break;
-
-                    case TIMING_STATE:
-                        stopTimerCommand();
-                        break;
-
-                    case STOPPED_STATE:
-                        addEventCommand();
-                        resetButtons();
-                        break;
-                }
-            }
-        });
-
-        resetBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                resetTimerCommand();
-                resetButtons();
-            }
-        });
+    public void clearTimer() {
+        ts.clearTimer();
+        onTimerReset();
     }
 
     /*
-     *
-     * Timer methods
-     *
+     * End of public methods
      */
 
-    private void startTimerCommand() {
-        ts.startTimerCommand();
+    private void setupViews() {
+        MainActivity app = (MainActivity) requireContext();
 
-        changeTimerButton(R.color.colorAccent, R.drawable.stop_icon);
+        timerTv = app.findViewById(R.id.timer_textview);// todo data binding
+        buttonBar = app.findViewById(R.id.button_bar);
+        resetBtn = app.findViewById(R.id.reset_button);
+        resetBtn.setOnClickListener(btnListener);
+
+        startBtn = app.findViewById(R.id.start_pause_button);
+        startBtn.setOnClickListener(btnListener);
+
+        addBtn = app.findViewById(R.id.add_event_button);
+        addBtn.setOnClickListener(btnListener);
     }
 
-    private void stopTimerCommand() {
-        ts.stopTimerCommand();
-
-        changeTimerButton(R.color.colorPrimary, R.drawable.add_icon);
-        resetBtn.show();
+    private void startTimer() {
+        ts.startTimer();
+        onTimerStart();
     }
 
-    private void addEventCommand() {
-        ts.addEventCommand();
-        mainActivityListener.updateListFragment();
-        mainActivityListener.updateStatsFragment();
-    }
-
-    private void resetTimerCommand() {
-        ts.resetTimerCommand();
-    }
-
-    public void resetTimerIndex() {
-        ts.resetTimerIndexCommand();
-
-        resetButtons();
-    }
-
-    public void undoResetIndex() {
-        ts.undoResetIndex();
-    }
-
-    private void loadStoppedState() {
-        ts.reloadStoppedStateCommand();
-
-        changeTimerButton(R.color.colorPrimary, R.drawable.add_icon);
-        resetBtn.show();
+    private void pauseTimer() {
+        ts.pauseTimer();
+        onTimerPause();
     }
 
     private void resumeTimer() {
-        ts.resumeTimerCommand();
-
-        changeTimerButton(R.color.colorAccent, R.drawable.stop_icon);
+        ts.resumeTimer();
+        onTimerResume();
     }
 
-    /*
-     *
-     * UI methods
-     *
-     */
-
-    private void resetButtons() {
-        changeTimerButton(R.color.colorPrimary, R.drawable.start_icon);
-        resetBtn.hide();
+    private void resetTimer() {
+        ts.resetTimer();
+        onTimerReset();
     }
 
-    private void changeTimerButton(int colour, int icon) {
-        mainBtn.setBackgroundTintList(getResources().getColorStateList(colour));
-        mainBtn.setImageResource(icon);
+    private void addEvent() {
+        long t = System.currentTimeMillis();
+        ts.addEvent();
+        onEventAdded();
+        System.out.println("TF.addToList: "+(System.currentTimeMillis()-t)+"ms");
     }
 
-    private BroadcastReceiver updateFragmentReceiver = new BroadcastReceiver() {
+    private void reloadPausedState() {
+        ts.reloadPausedState();
+        onTimerPause();
+    }
+
+    private void continueTiming() {
+        ts.continueTiming();
+        onTimerResume();
+    }
+
+    private void readyTimer() {
+        timerTv.setText(Timer.formatDuration(0));
+
+        transitionStartBtn(requireContext(), startBtn, R.drawable.grey_to_red_transition);
+        TransitionUtils.onTimerReset(buttonBar, resetBtn, startBtn, addBtn);
+    }
+
+    private void onTimerStart() {
+        transitionStartBtn(requireContext(), startBtn, R.drawable.red_to_grey_transition);
+
+        TransitionUtils.onTimerStart(buttonBar, resetBtn, startBtn);
+    }
+
+    private void onTimerPause() {
+        transitionStartBtn(requireContext(), startBtn, R.drawable.grey_to_background_transition);
+
+        TransitionUtils.onTimerPause(buttonBar, startBtn, addBtn);
+    }
+
+    private void onTimerResume() {
+        TransitionDrawable transition = (TransitionDrawable) startBtn.getBackground();
+        transition.reverseTransition(ANIMATION_DURATION);
+
+        TransitionUtils.onTimerResume(buttonBar, startBtn, addBtn);
+    }
+
+    private void onTimerReset() {
+        if(addBtn.getVisibility() == View.VISIBLE) {
+            transitionStartBtn(requireContext(), startBtn, R.drawable.background_to_red_transition);
+
+        } else if(addBtn.getVisibility() == View.INVISIBLE) {
+            transitionStartBtn(requireContext(), startBtn, R.drawable.grey_to_red_transition);
+        }
+
+        TransitionUtils.onTimerReset(buttonBar, resetBtn, startBtn, addBtn);
+    }
+
+    private void onEventAdded() {
+        transitionStartBtn(requireContext(), startBtn, R.drawable.background_to_red_transition);
+
+        TransitionUtils.onEventAdded(buttonBar, resetBtn, startBtn, addBtn);
+        ((MainActivity) requireContext()).onEventAdded();
+    }
+
+    private BroadcastReceiver updateTime = new BroadcastReceiver() { // from
         @Override
         public void onReceive(Context context, Intent intent) {
             long time = intent.getLongExtra(TV_TIME, 0);
             timerTv.setText(Timer.formatDuration(time));
-        }
-    };
-
-    private ServiceConnection conn = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            ts = ((TimerService.TimerBinder)service).getService();
-
-            switch (prefs.getString(TIMER_STATE, RESET_STATE)) {
-                case RESET_STATE:
-                    break;
-
-                case TIMING_STATE:
-                    resumeTimer();
-                    break;
-
-                case STOPPED_STATE:
-                    loadStoppedState();
-                    break;
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            ts = null;
         }
     };
 }

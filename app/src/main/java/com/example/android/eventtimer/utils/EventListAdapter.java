@@ -1,27 +1,28 @@
 package com.example.android.eventtimer.utils;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.example.android.eventtimer.MainActivity;
 import com.example.android.eventtimer.R;
 
-import static com.example.android.eventtimer.utils.EventsManager.PREFS;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private SparseBooleanArray selectedEventIds;
+    private List<Integer> selectedEventIds;
 
-    public EventListAdapter(MainActivity app) {
-        super(app.getBaseContext(), R.layout.time_row, EventsManager.getAllEvents(app.getSharedPreferences(PREFS,Context.MODE_PRIVATE)));
-        selectedEventIds = new SparseBooleanArray();
+    public EventListAdapter(Context context, SharedPreferences prefs) {
+        super(context, R.layout.time_row, EventsManager.getAllEvents(prefs)); //todo improve time row layout
+        selectedEventIds = new ArrayList<>();
     }
 
     private class ViewHolder {
@@ -50,33 +51,23 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        viewHolder.label.setText(event.getLabelText());
-        //TODO: add method to event obj to return formatted text of time instead of using timer (done)
-        //TODO: think more about ^ after refactoring the counter into a linear layout with h:m:s
-        viewHolder.time.setText(event.getFormattedDuration());
+        viewHolder.label.setText(Objects.requireNonNull(event).getLabel());
+        viewHolder.time.setText(Timer.formatDuration(event.getDurationMillis()));
 
         return convertView;
     }
 
     public void toggleSelection(int position) {
-        selectEvent(position, !selectedEventIds.get(position));
+        selectedEventIds.add(position);
+        notifyDataSetChanged();
     }
 
     public void clearSelection() {
-        selectedEventIds = new SparseBooleanArray();
+        selectedEventIds = new ArrayList<>();
         notifyDataSetChanged();
     }
 
-    private void selectEvent(int position, boolean selected) {
-        if(selected) {
-            selectedEventIds.put(position, true);
-        } else {
-            selectedEventIds.delete(position);
-        }
-        notifyDataSetChanged();
-    }
-
-    public SparseBooleanArray getSelectedIds() {
+    public List<Integer> getSelectedIds() {
         return selectedEventIds;
     }
 }
