@@ -1,4 +1,4 @@
-package com.example.android.eventtimer;
+package com.example.android.statwatch;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
@@ -7,13 +7,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.android.statwatch.eventComponents.EventsFragment;
+import com.example.android.statwatch.statsComponents.StatsFragment;
+import com.example.android.statwatch.timerComponents.TimerFragment;
+import com.example.android.statwatch.utils.Resources;
+
 import java.util.Objects;
 
-import static com.example.android.eventtimer.utils.Constants.EVENTS_FRAGMENT;
-import static com.example.android.eventtimer.utils.Constants.STATS_EXPANSION;
-import static com.example.android.eventtimer.utils.Constants.STATS_FRAGMENT;
-import static com.example.android.eventtimer.utils.Constants.TIMER_FRAGMENT;
-import static com.example.android.eventtimer.utils.EventsManager.PREFS;
+import static com.example.android.statwatch.utils.Constants.EVENTS_FRAGMENT;
+import static com.example.android.statwatch.utils.Constants.STATS_FRAGMENT;
+import static com.example.android.statwatch.utils.Constants.TIMER_FRAGMENT;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,7 +32,15 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
+        new Resources(this);
         setupFragments();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        refreshComponents();
     }
 
     @Override
@@ -43,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.action_reset:
-                eventsFragment.clearEvents();
-                statsFragment.resetStats();
+            case R.id.action_clear:
+                eventsFragment.deleteEvents();
+                statsFragment.refresh();
                 timerFragment.clearTimer();
                 return true;
 
@@ -62,33 +73,30 @@ public class MainActivity extends AppCompatActivity {
      * Start of public methods
      */
 
-    public void onEventAdded() {
-        eventsFragment.refreshList();
-        statsFragment.refreshStats();
+    public void refreshComponents() { //called when event is added
+        statsFragment.refresh();
+        eventsFragment.refresh();
     }
 
-    public void onEventsRemoved() {
-        statsFragment.refreshStats();
+    public void removeEvent() {
+        statsFragment.refresh();
     }
 
-    public void onUndo() {
-        statsFragment.refreshStats();
+    public void undo() {
+        timerFragment.undo();
+        statsFragment.refresh();
     }
 
     /*
-     * End of public methods
+     * Start of private methods
      */
 
     private void setupFragments() {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        boolean isExpanded = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(STATS_EXPANSION, false);// todo remove after impl new stats
-        Bundle args = new Bundle();
-        args.putBoolean(STATS_EXPANSION, isExpanded);
 
         timerFragment = new TimerFragment();
         eventsFragment = new EventsFragment();
         statsFragment = new StatsFragment(); //todo implement new stats controller
-        statsFragment.setArguments(args);
 
         ft.add(timerFragment, TIMER_FRAGMENT)
                 .add(eventsFragment, EVENTS_FRAGMENT)

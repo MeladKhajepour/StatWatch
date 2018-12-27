@@ -1,4 +1,4 @@
-package com.example.android.eventtimer.utils;
+package com.example.android.statwatch.eventComponents;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -9,19 +9,19 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.example.android.eventtimer.R;
+import com.example.android.statwatch.R;
+import com.example.android.statwatch.timerComponents.Timer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-
-public class EventListAdapter extends ArrayAdapter<Event> {
+class EventListAdapter extends ArrayAdapter<Event> {
 
     private List<Integer> selectedEventIds;
 
-    public EventListAdapter(Context context, SharedPreferences prefs) {
-        super(context, R.layout.time_row, EventsManager.getAllEvents(prefs)); //todo improve time row layout
+    EventListAdapter(Context context, SharedPreferences prefs) {
+        super(context, R.layout.time_row, EventsManager.getEvents(prefs)); //todo improve time row layout
         selectedEventIds = new ArrayList<>();
     }
 
@@ -57,17 +57,23 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         return convertView;
     }
 
-    public void toggleSelection(int position) {
-        selectedEventIds.add(position);
+    void toggleSelection(int position) {
+
+        if(!selectedEventIds.contains(position)) {
+            selectedEventIds.add(position);
+        } else {
+            selectedEventIds.remove(position);
+        }
+
         notifyDataSetChanged();
     }
 
-    public void clearSelection() {
-        selectedEventIds = new ArrayList<>();
+    void clearSelection() {
+        selectedEventIds.clear();
         notifyDataSetChanged();
     }
 
-    public List<Integer> getSelectedIds() {
+    List<Integer> getSelectedPositions() {
         return selectedEventIds;
     }
 }

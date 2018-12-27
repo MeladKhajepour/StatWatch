@@ -1,8 +1,7 @@
-package com.example.android.eventtimer;
+package com.example.android.statwatch.eventComponents;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.ActionMode;
@@ -12,59 +11,49 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
-import com.example.android.eventtimer.utils.Event;
-import com.example.android.eventtimer.utils.EventListAdapter;
-import com.example.android.eventtimer.utils.EventsManager;
-import com.example.android.eventtimer.utils.StatsManager;
-import com.example.android.eventtimer.utils.Timer;
+import com.example.android.statwatch.MainActivity;
+import com.example.android.statwatch.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.android.eventtimer.utils.EventsManager.PREFS;
+import static com.example.android.statwatch.utils.Constants.PREFS;
 
 
 public class EventsFragment extends Fragment {
-
     private ListView listView;
     private EventListAdapter eventListAdapter;
     private SharedPreferences prefs;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        MainActivity app = (MainActivity) context;
 
-        prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        init(context);
+        prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        eventListAdapter = new EventListAdapter(context, prefs);
+        initList(app);
     }
 
     /*
      * Start of public methods
      */
 
-    public void refreshList() {
+    public void refresh() {
         eventListAdapter.notifyDataSetChanged();
     }
 
-    public void clearEvents() {
-        List<Event> selectedEvents = new ArrayList<>(EventsManager.getAllEvents(prefs));
+    public void deleteEvents() {
+        List<Event> selectedEvents = new ArrayList<>(EventsManager.getEvents(prefs));
 
-        removeSelectedEvents(selectedEvents);
+        deleteSelectedEvents(selectedEvents);
     }
 
     /*
      * End of public methods
      */
 
-    private void init(Context context) {
-        MainActivity app = (MainActivity) context;
-        eventListAdapter = new EventListAdapter(context, prefs);
+    private void initList(MainActivity app) {
         listView = app.findViewById(R.id.events_list);
         listView.setAdapter(eventListAdapter);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -73,11 +62,15 @@ public class EventsFragment extends Fragment {
             @Override
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
                 int checkedCount = listView.getCheckedItemCount();
-                StringBuilder sb = checkedCount > 1 ?
-                        new StringBuilder(" events") : new StringBuilder(" event");
+                String title;
 
-                sb.append(" selected");
-                mode.setTitle(checkedCount + sb.toString());
+                if(checkedCount > 1) {
+                    title = checkedCount + " events selected";
+                } else {
+                    title = checkedCount + " event selected";
+                }
+
+                mode.setTitle(title);
                 eventListAdapter.toggleSelection(position);
             }
 
@@ -86,10 +79,15 @@ public class EventsFragment extends Fragment {
                 switch (item.getItemId()) {
 
                     case R.id.action_delete_selected_events:
-                        removeSelectedEvents(getSelectedEvents());
+                        deleteSelectedEvents(getSelectedEvents());
 
                         mode.finish();
                         return true;
+
+//                    case R.id.action_calculate_selection: //todo? maybe?
+//                        calculateSelection(getSelectedEvents());
+//
+//                        return true;
 
                     default:
                         return false;
@@ -114,49 +112,50 @@ public class EventsFragment extends Fragment {
         });
     }
 
-    private void removeSelectedEvents(List<Event> selectedEvents) {
+    private void deleteSelectedEvents(List<Event> selectedEvents) {
         EventsManager.removeSelectedEvents(prefs, selectedEvents);
-        StatsManager.updateEventsRemoved(prefs, selectedEvents);
+        List<Integer> selectedPositions = new ArrayList<>(eventListAdapter.getSelectedPositions());
         eventListAdapter.clearSelection();
-        refreshList();
 
-        showUndoSnackbar(selectedEvents);
+        if(selectedPositions.isEmpty()) {
+            for(int i = 0; i < selectedEvents.size(); i++) {
+                selectedPositions.add(i);
+            }
+        }
 
-        ((MainActivity) requireContext()).onEventsRemoved();
+        showUndoSnackbar(selectedEvents, selectedPositions);
+
+        ((MainActivity) requireContext()).removeEvent();
     }
 
     private List<Event> getSelectedEvents() {
-        List<Integer> selectedEventIds = eventListAdapter.getSelectedIds();
+        List<Integer> selectedPositions = eventListAdapter.getSelectedPositions();
         List<Event> selectedEvents = new ArrayList<>();
 
-        for(Integer selectedEventId : selectedEventIds) {
-            selectedEvents.add(eventListAdapter.getItem(selectedEventId));
+        for(Integer position : selectedPositions) {
+            selectedEvents.add(eventListAdapter.getItem(position));
         }
 
         return selectedEvents;
     }
 
-    private void showUndoSnackbar(final List<Event> selectedEvents) {
-        final List<Integer> selectedEventIds = eventListAdapter.getSelectedIds();
+    private void showUndoSnackbar(final List<Event> selectedEvents, final List<Integer> selectedPositions) {
         int numRemovedEvents = selectedEvents.size();
-
-        String text = numRemovedEvents == 1 ? " event removed" : " events removed";
+        String text = numRemovedEvents == 1 ? " event deleted" : " events deleted";
 
         Snackbar snackbar = Snackbar.make(listView, numRemovedEvents + text, Snackbar.LENGTH_LONG);
         snackbar.setAction("Undo", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                undoRemoveEvents(selectedEventIds, selectedEvents);
+                undo(selectedEvents, selectedPositions);
             }
         });
         snackbar.show();
     }
 
-    private void undoRemoveEvents(List<Integer> selectedEventIds, List<Event> selectedEvents) {
-        EventsManager.undoRemoveEvents(prefs, selectedEvents, selectedEventIds);
-        StatsManager.undoRemoveEvents(prefs);
-        Timer.undoResetTimerIndex(prefs);
-        refreshList();
-        ((MainActivity) requireContext()).onUndo();
+    private void undo(List<Event> selectedEvents, List<Integer> selectedPositions) {
+        EventsManager.undo(prefs, selectedEvents, selectedPositions);
+        refresh();
+        ((MainActivity) requireContext()).undo();
     }
 }

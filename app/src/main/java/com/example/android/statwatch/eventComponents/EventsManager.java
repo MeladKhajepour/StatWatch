@@ -1,4 +1,4 @@
-package com.example.android.eventtimer.utils;
+package com.example.android.statwatch.eventComponents;
 
 import android.content.SharedPreferences;
 
@@ -11,43 +11,42 @@ import java.util.List;
 
 
 public class EventsManager {
-
-    public static final String PREFS = "prefs";
-
     private static final String EVENTS = "events";
     private static List<Event> eventList;
 
-    public static void addToList(SharedPreferences prefs, Event event) {
-        eventList.add(0, event);
-        saveEvents(prefs);
+    public static void addEvent(SharedPreferences prefs, Event event) { // called in TimerService
+        if(event != null) {
+            eventList.add(0, event);
+            saveEvents(prefs);
+        }
     }
 
-    public static void undoRemoveEvents(SharedPreferences prefs, List<Event> removedEvents, List<Integer> removedEventIndices) {
+    static void undo(SharedPreferences prefs, List<Event> selectedEvents, List<Integer> selectedPositions) { // called in EventsFragment
         int i = 0;
-        for(Integer id : removedEventIndices) {
-            eventList.add(id, removedEvents.get(i));
+        for(Integer id : selectedPositions) {
+            eventList.add(id, selectedEvents.get(i));
             i += 1;
         }
         saveEvents(prefs);
     }
 
-    public static void removeSelectedEvents(SharedPreferences prefs, List<Event> selectedEvents) {
+    static void removeSelectedEvents(SharedPreferences prefs, List<Event> selectedEvents) { // called in EventsFragment
         eventList.removeAll(selectedEvents);
         saveEvents(prefs);
     }
 
-    public static List<Event> getAllEvents(SharedPreferences prefs) {
+    public static List<Event> getEvents(SharedPreferences prefs) {
         if(eventList == null) {
             loadEvents(prefs);
         }
         return eventList;
     }
 
-    public static int getEventListSize(SharedPreferences prefs) {
+    public static long getLatestTime(SharedPreferences prefs) { // called in TimerService
         if(eventList == null) {
             loadEvents(prefs);
         }
-        return eventList.size();
+        return eventList.get(0).getDurationMillis();
     }
 
     private static void loadEvents(SharedPreferences prefs) {
