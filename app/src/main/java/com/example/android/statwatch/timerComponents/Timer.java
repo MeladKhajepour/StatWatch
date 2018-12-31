@@ -109,12 +109,10 @@ public class Timer {
         int hours;
         int minutes = (int) (durationSeconds / 60L);
         int seconds = (int) (durationSeconds % 60);
-        int tenths;
+        int tenths = (int) (durationTenths % 10);
         String formattedTime;
 
         if(minutes < 60) {
-            tenths = (int) (durationTenths % 10);
-
             formattedTime = truncateTenths ?
                     String.format(Locale.getDefault(), "%d:%02d", minutes, seconds) :
                     String.format(Locale.getDefault(), "%d:%02d.%01d", minutes, seconds, tenths);
@@ -124,8 +122,8 @@ public class Timer {
 
             formattedTime = String.format(
                     Locale.getDefault(),
-                    "%d:%02d:%01d",
-                    hours, minutes, seconds
+                    "%d:%02d:%02d.%01d",
+                    hours, minutes, seconds, tenths
             );
         }
 

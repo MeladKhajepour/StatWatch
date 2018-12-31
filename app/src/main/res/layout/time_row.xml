@@ -19,7 +19,7 @@
         android:textAlignment="textStart"
         android:textSize="20sp"
         android:duplicateParentState="true"
-        android:textColor="@drawable/selected_text_colour"
+        android:textColor="@drawable/selector_list_text"
         style="@style/TitleText"/>
 
     <TextView
@@ -31,6 +31,6 @@
         android:textSize="20sp"
         android:layout_alignParentEnd="true"
         android:duplicateParentState="true"
-        android:textColor="@drawable/selected_text_colour"/>
+        android:textColor="@drawable/selector_list_text"/>
 
 </RelativeLayout>

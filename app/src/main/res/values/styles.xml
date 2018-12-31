@@ -7,15 +7,15 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
-        <item name="android:textColor">@color/light_text_colour</item>
-        <item name="android:windowBackground">@color/background_colour</item>
-        <item name="android:activatedBackgroundIndicator">@drawable/list_activated_background</item>
+        <item name="android:textColor">@color/textColourLight</item>
+        <item name="android:windowBackground">@color/backgroundColour</item>
+        <item name="android:activatedBackgroundIndicator">@drawable/selector_list_background</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeBackground">@color/colorPrimary</item>
         <item name="android:fontFamily">@font/worksans_light</item>
-        <item name="android:navigationBarColor">@color/navbar_colour</item>
+        <item name="android:navigationBarColor">@color/navbar</item>
     </style>
 
     <style name="TitleText" parent="TextAppearance.AppCompat">

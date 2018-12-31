@@ -14,8 +14,11 @@
         app:layout_constraintBottom_toTopOf="@+id/events_list">
 
         <View
+            android:id="@+id/moe_bar"
             android:layout_width="match_parent"
-            android:layout_height="4dp"
+            android:layout_height="2dp"
+            android:layout_marginEnd="42dp"
+            android:layout_marginStart="42dp"
             android:background="@color/colorAccent"/>
 
         <LinearLayout
@@ -35,8 +38,8 @@
                     android:id="@+id/shortest_event_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Shortest Event"
                     android:textAlignment="center"
+                    android:text="Shortest"
                     style="@style/TitleText"/>
 
                 <TextView
@@ -60,8 +63,8 @@
                     android:id="@+id/average_time_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Average Time"
                     android:textAlignment="center"
+                    android:text="Average"
                     style="@style/TitleText"/>
 
                 <TextView
@@ -85,8 +88,8 @@
                     android:id="@+id/longest_event_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Longest Event"
                     android:textAlignment="center"
+                    android:text="Longest"
                     style="@style/TitleText"/>
 
                 <TextView
@@ -106,7 +109,6 @@
             android:id="@+id/expanded_stats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
             android:baselineAligned="false">
 
             <LinearLayout
@@ -116,6 +118,7 @@
                 android:layout_weight="1"
                 android:layout_marginRight="@dimen/margin_horizontal"
                 android:layout_marginLeft="@dimen/margin_horizontal"
+                android:layout_marginBottom="14dp"
                 android:paddingTop="@dimen/padding_vertical"
                 android:paddingBottom="@dimen/padding_vertical">
 
@@ -123,7 +126,7 @@
                     android:id="@+id/std_dev_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Standard Deviation"
+                    android:text="Std Dev"
                     android:textAlignment="center"
                     style="@style/TitleText"/>
 
@@ -140,24 +143,22 @@
 
             <LinearLayout
                 android:id="@+id/margin_of_error_button"
-                android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginRight="@dimen/margin_horizontal"
                 android:layout_marginLeft="@dimen/margin_horizontal"
-                android:layout_marginBottom="4dp"
-                android:foreground="@drawable/moe_ripple"
-                android:background="@drawable/round_rect_accent"
+                android:orientation="vertical"
+                android:background="@drawable/button_moe"
                 android:paddingTop="@dimen/padding_vertical"
                 android:paddingBottom="@dimen/padding_vertical"
-                android:elevation="6dp">
+                android:elevation="4dp">
 
                 <TextView
                     android:id="@+id/margin_of_error_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Margin of Error"
+                    android:text="MoE"
                     android:textAlignment="center"
                     style="@style/TitleText"/>
 

@@ -76,16 +76,16 @@ class TimerNotifications {
 
             case TIMING:
                 builder.setContentText("StatWatch is running. Tap to return or expand for actions");
-                builder.addAction(R.drawable.reset_icon, "Reset", resetTimerAction());
-                builder.addAction(R.drawable.pause_icon, "Pause", pauseTimerAction());
-                builder.addAction(R.drawable.add_icon, "Add", addEventAction());
+                builder.addAction(R.drawable.icon_reset, "Reset", resetTimerAction());
+                builder.addAction(R.drawable.icon_pause, "Pause", pauseTimerAction());
+                builder.addAction(R.drawable.icon_add, "Add", addEventAction());
                 break;
 
             case PAUSED:
                 builder.setContentText("StatWatch is paused. Add event or swipe away to reset");
-                builder.addAction(R.drawable.reset_icon, "Reset", resetTimerAction());
-                builder.addAction(R.drawable.start_icon, "Resume", resumeTimerAction());
-                builder.addAction(R.drawable.add_icon, "Add", addEventAction());
+                builder.addAction(R.drawable.icon_reset, "Reset", resetTimerAction());
+                builder.addAction(R.drawable.icon_start, "Resume", resumeTimerAction());
+                builder.addAction(R.drawable.icon_add, "Add", addEventAction());
                 builder.setDeleteIntent(PendingIntent.getBroadcast(timerService, 0, new Intent(NOTIFICATION_DISMISSED), 0));
                 break;
 
@@ -98,7 +98,7 @@ class TimerNotifications {
                     builder.setContentText("StatWatch reset");
                 }
 
-                builder.addAction(R.drawable.start_icon, "Start", startTimerAction());
+                builder.addAction(R.drawable.icon_start, "Start", startTimerAction());
                 break;
         }
     }

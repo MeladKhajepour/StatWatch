@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#574D5F</color>
-    <color name="colorPrimaryDark">#2e2535</color>
-    <color name="colorAccent">#F17253</color>
-    <color name="pause_button_colour">@color/colorPrimary</color>
-    <color name="add_button_colour">#3200e676</color>
-    <color name="selectedEventColour">#80ff1744</color>
-    <color name="start_button_colour">@color/navbar_colour</color>
-    <color name="background_colour">#222222</color>
-    <color name="navbar_colour">#1b1b1b</color>
-    <color name="light_text_colour">#eeeeee</color>
-    <color name="ripple_colour_moe">#60eeeeee</color>
-    <color name="ripple_colour_start">#45dddddd</color>
-    <color name="ripple_colour_add">#6000e676</color>
-    <color name="ripple_colour_reset">#80c4001d</color>
-    <color name="button_bar_divider">#20cccccc</color>
-    <color name="reset_button_colour">#52c4001d</color>
+    <color name="colorPrimary">#373741</color>
+    <color name="colorPrimaryLight">#42424e</color>
+    <color name="colorPrimaryDark">#2c2c34</color>
+    <color name="colorAccent">#0075ff</color>
+    <color name="selectedEventColour">#60ff1744</color>
+    <color name="backgroundColour">#222222</color>
+    <color name="backgroundColourTransparent">#00222222</color>
+    <color name="navbar">#1b1b1b</color>
+    <color name="textColourLight">#f0f0f0</color>
+
+    <!--ripple colours-->
+    <color name="rippleGrey">#4099999c</color>
+    <color name="rippleBlue">#448aff</color>
+    <color name="rippleRed">#80c4001d</color>
 </resources>

@@ -17,7 +17,7 @@ import static com.example.android.statwatch.utils.TransitionUtils.showPauseButto
 import static com.example.android.statwatch.utils.TransitionUtils.showResetButton;
 import static com.example.android.statwatch.utils.TransitionUtils.showStartButton;
 
-class TimerViews { // 12/25/18 - "it also cant get any simpler than this"
+class TimerViews {
     private TextView textview;
     private ViewGroup buttonBar;
     private View resetButton;
@@ -26,11 +26,12 @@ class TimerViews { // 12/25/18 - "it also cant get any simpler than this"
 
     TimerViews(final TimerFragment timerFragment) {
         MainActivity app = (MainActivity) timerFragment.requireContext();
+
         textview = app.findViewById(R.id.timer_textview);
         buttonBar = app.findViewById(R.id.button_bar);
-        resetButton = buttonBar.getChildAt(0);
-        startButton = buttonBar.getChildAt(1);
-        addButton = buttonBar.getChildAt(2);
+        resetButton = app.findViewById(R.id.reset_button);
+        startButton = app.findViewById(R.id.main_button);
+        addButton = app.findViewById(R.id.add_button);
 
         View.OnClickListener btnListener = new View.OnClickListener() {
 
@@ -43,7 +44,7 @@ class TimerViews { // 12/25/18 - "it also cant get any simpler than this"
                         timerFragment.resetTimer();
                         break;
 
-                    case R.id.start_pause_button:
+                    case R.id.main_button:
 
                         switch (timerFragment.getTimerState()) { // get timer state separately
 
@@ -61,7 +62,7 @@ class TimerViews { // 12/25/18 - "it also cant get any simpler than this"
                         }
                         break;
 
-                    case R.id.add_event_button:
+                    case R.id.add_button:
                         timerFragment.addEvent();
                         break;
                 }
@@ -92,7 +93,7 @@ class TimerViews { // 12/25/18 - "it also cant get any simpler than this"
             case TIMING:
                 showPauseButton(startButton);
                 showResetButton(buttonBar, resetButton);
-                hideAddButton(buttonBar, addButton);
+                showAddButton(buttonBar, addButton);
                 break;
 
             case PAUSED:

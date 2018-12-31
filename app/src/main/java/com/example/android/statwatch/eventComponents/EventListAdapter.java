@@ -57,7 +57,7 @@ class EventListAdapter extends ArrayAdapter<Event> {
         return convertView;
     }
 
-    void toggleSelection(int position) {
+    void toggleSelection(Integer position) {
 
         if(!selectedEventIds.contains(position)) {
             selectedEventIds.add(position);

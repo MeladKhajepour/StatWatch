@@ -64,10 +64,10 @@ public class EventsFragment extends Fragment {
                 int checkedCount = listView.getCheckedItemCount();
                 String title;
 
-                if(checkedCount > 1) {
-                    title = checkedCount + " events selected";
-                } else {
+                if(checkedCount == 1) {
                     title = checkedCount + " event selected";
+                } else {
+                    title = checkedCount + " events selected";
                 }
 
                 mode.setTitle(title);

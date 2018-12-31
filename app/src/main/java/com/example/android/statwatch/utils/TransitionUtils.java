@@ -7,7 +7,7 @@ import android.transition.TransitionManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 
 import com.example.android.statwatch.R;
 
@@ -16,28 +16,28 @@ import static com.example.android.statwatch.utils.Constants.HIDE_BUTTONS_DURATIO
 
 public class TransitionUtils {
 
-    public static void showPauseButton(final View startButton) {
-        ((ImageView)((ViewGroup) startButton).getChildAt(1)).setImageResource(R.drawable.pause_icon);
+    public static void showPauseButton(final View mainButton) {
+        ((ImageButton) mainButton).setImageResource(R.drawable.icon_pause);
 
-        if(startButton.getBackground().getClass().equals(TransitionDrawable.class)) {
-            startButton.setBackground(Resources.accentToGreyTransition);
-            ((TransitionDrawable) Resources.accentToGreyTransition).startTransition(ANIMATION_DURATION);
+        if(mainButton.getBackground().getClass().equals(TransitionDrawable.class)) {
+            mainButton.setBackground(Resources.TRANSITION_ACCENT_TO_GREY);
+            ((TransitionDrawable) Resources.TRANSITION_ACCENT_TO_GREY).startTransition(ANIMATION_DURATION);
 
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    startButton.setBackground(Resources.backgroundColour);
+                    mainButton.setBackground(Resources.BUTTON_MAIN_GREY);
                 }
             }, ANIMATION_DURATION);
         }
     }
 
     public static void showStartButton(View startButton, boolean transitionColour) {
-        ((ImageView)((ViewGroup) startButton).getChildAt(1)).setImageResource(R.drawable.start_icon);
+        ((ImageButton) startButton).setImageResource(R.drawable.icon_start);
 
         if(transitionColour) {
-            startButton.setBackground(Resources.greyToAccentTransition);
-            ((TransitionDrawable) Resources.greyToAccentTransition).startTransition(ANIMATION_DURATION);
+            startButton.setBackground(Resources.TRANSITION_GREY_TO_ACCENT);
+            ((TransitionDrawable) Resources.TRANSITION_GREY_TO_ACCENT).startTransition(ANIMATION_DURATION);
         }
     }
 
