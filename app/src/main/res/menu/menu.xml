@@ -2,12 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <item android:id="@+id/action_add"
+        android:title="Add Event"
+        android:icon="@drawable/icon_add_menu"
+        app:showAsAction="always"/>
+
     <item android:id="@+id/action_clear"
         android:title="Reset"
+        android:icon="@drawable/icon_clear_menu"
         app:showAsAction="never"/>
 
     <item android:id="@+id/action_more"
         android:title="More"
+        android:icon="@drawable/icon_info_menu"
         app:showAsAction="never"/>
 
 </menu>

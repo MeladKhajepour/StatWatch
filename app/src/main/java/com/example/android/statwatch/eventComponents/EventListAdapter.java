@@ -59,10 +59,10 @@ class EventListAdapter extends ArrayAdapter<Event> {
 
     void toggleSelection(Integer position) {
 
-        if(!selectedEventIds.contains(position)) {
-            selectedEventIds.add(position);
-        } else {
+        if(selectedEventIds.contains(position)) {
             selectedEventIds.remove(position);
+        } else {
+            selectedEventIds.add(position);
         }
 
         notifyDataSetChanged();

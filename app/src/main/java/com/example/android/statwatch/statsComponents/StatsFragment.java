@@ -35,21 +35,4 @@ public class StatsFragment extends Fragment {
     int getAplhaSelection() {
         return prefs.getInt(SELECTED_ALPHA, 1);
     }
-
-    //todo - reference for transitions
-//    private void toggleExpansion(View v, boolean isExpanded){
-//        TransitionSet transition = new TransitionSet();
-//        transition.setDuration(ANIMATION_DURATION);
-//        transition.setOrdering(TransitionSet.ORDERING_TOGETHER);
-//        transition.setInterpolator(new DecelerateInterpolator());
-//        transition.addTransition(new ChangeBounds())
-//                .addTransition(new Fade(Fade.IN).setDuration(ANIMATION_DURATION))
-//                .addTransition(new Fade(Fade.OUT).setDuration(ANIMATION_DURATION /2));
-//
-//        TransitionManager.beginDelayedTransition((ViewGroup) v.getRootView().findViewById(R.id.container), transition);
-//
-//        expandedStats.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-//
-//        statsBar.requestLayout();
-//    }
 }
