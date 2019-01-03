@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -23,6 +24,8 @@ public class EventsManager {
 
     static void undo(SharedPreferences prefs, List<Event> selectedEvents, List<Integer> selectedPositions) { // called in EventsFragment
         int i = 0;
+        //todo - sort positions in ascending order and then sort events by index in descending order so the undo works properly
+        // OR todo - copy the list of events before deleting them and on undo just set the eventList to the copied list
         for(Integer id : selectedPositions) {
             eventList.add(id, selectedEvents.get(i));
             i += 1;

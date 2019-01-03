@@ -72,28 +72,28 @@ public class Timer {
     }
 
     void onReset() {
-        if(state.equals(TIMING) || state.equals(PAUSED)) {
-            elapsedMillis = 0;
-            saveElapsedTime();
+        elapsedMillis = 0;
+        saveElapsedTime();
 
-            setState(READY);
-            handler.removeCallbacks(timer);
-        }
+        setState(READY);
+        handler.removeCallbacks(timer);
     }
 
     void loadPausedTime() {
         elapsedMillis = loadElapsedTime();
     }
 
-    Event createEvent() {
-        Event event = null;
+    Event createEvent(long millis) {
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        currentIndex = autoIndex.incrementAndGet();
+        saveIndex();
 
-        if(state.equals(TIMING) || state.equals(PAUSED)) {
-            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-            currentIndex = autoIndex.incrementAndGet();
+        Event event;
+        if(millis == -1) {
             event = new Event(currentIndex, elapsedMillis, date);
-            saveIndex();
             onReset();
+        } else {
+            event = new Event(currentIndex, millis, date);
         }
 
         return event;

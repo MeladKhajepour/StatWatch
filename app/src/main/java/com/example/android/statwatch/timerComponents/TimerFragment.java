@@ -60,12 +60,21 @@ public class TimerFragment extends Fragment { // 12/25/18 - "it cant get any sim
      * Start of public methods
      */
 
+    public void addEvent(long millis) {
+        timerService.onAdd(millis);
+        ((MainActivity) requireContext()).refreshComponents();
+    }
+
     public void clearTimer() { // called from MainActivity action menu
         timerService.onReset(true);
     }
 
     public void undo() { // called from EventsFragment snackbar action
         timerService.onUndo(); //just undos resetting the Timer index
+    }
+
+    void addEvent() {
+        addEvent(-1);
     }
 
     void startTimer() {
@@ -82,11 +91,6 @@ public class TimerFragment extends Fragment { // 12/25/18 - "it cant get any sim
 
     void resetTimer() {
         timerService.onReset();
-    }
-
-    void addEvent() {
-        timerService.onAdd();
-        ((MainActivity) requireContext()).refreshComponents();
     }
 
     String getTimerState() {

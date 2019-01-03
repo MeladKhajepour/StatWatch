@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import com.example.android.statwatch.eventComponents.EventsFragment;
 import com.example.android.statwatch.statsComponents.StatsFragment;
 import com.example.android.statwatch.timerComponents.TimerFragment;
+import com.example.android.statwatch.utils.AddEventDialog;
 import com.example.android.statwatch.utils.Resources;
 
 import java.util.Objects;
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private TimerFragment timerFragment;
     private StatsFragment statsFragment;
     private EventsFragment eventsFragment;
+    private AddEventDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
+        dialog = new AddEventDialog();
         new Resources(this);
         setupFragments();
     }
@@ -60,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
                 timerFragment.clearTimer();
                 return true;
 
+            case R.id.action_add:
+                addEventAction();
+                return true;
+
             case R.id.action_more:
                 //todo start more activity
                 return true;
@@ -76,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
     public void refreshComponents() { //called when event is added
         statsFragment.refresh();
         eventsFragment.refresh();
+    }
+
+    public void addEvent(long millis) {
+        timerFragment.addEvent(millis);
     }
 
     public void removeEvent() {
@@ -102,5 +113,12 @@ public class MainActivity extends AppCompatActivity {
                 .add(eventsFragment, EVENTS_FRAGMENT)
                 .add(statsFragment, STATS_FRAGMENT)
         .commit();
+    }
+
+    private void addEventAction() {
+
+        if(!dialog.isAdded()) {
+            dialog.show(getSupportFragmentManager(), "addEventDialog");
+        }
     }
 }

@@ -122,8 +122,9 @@ public class TimerService extends Service {
         timer.onUndo();
     }
 
-    void onAdd() {
-        EventsManager.addEvent(prefs, timer.createEvent());
+    void onAdd(long millis) {
+
+        EventsManager.addEvent(prefs, timer.createEvent(millis));
 
         if(isConnected) {
             handler.removeCallbacks(updateFragmentRunnable);
@@ -204,7 +205,7 @@ public class TimerService extends Service {
                     break;
 
                 case ADD_EVENT:
-                    onAdd();
+                    onAdd(-1);
                     removeForegroundService(true);
                     break;
 
