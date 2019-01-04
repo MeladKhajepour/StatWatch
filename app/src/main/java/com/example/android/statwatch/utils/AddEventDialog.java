@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
@@ -13,6 +12,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.statwatch.MainActivity;
@@ -25,6 +25,7 @@ public class AddEventDialog extends DialogFragment {
     private EditText mins;
     private EditText secs;
     private EditText tenths;
+    private EditText currentInput;
     private EditText nextInput;
     private TextWatcher tw;
     private View.OnFocusChangeListener fcl;
@@ -58,17 +59,31 @@ public class AddEventDialog extends DialogFragment {
 
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
+                if(v.getId() != R.id.dialog_hours &&
+                        !((TextView) v).getText().toString().equals("") &&
+                        Integer.valueOf(((TextView) v).getText().toString()) > 59 &&
+                        !hasFocus) {
+                    ((TextView) v).setText("59");
+                }
+
                 switch (v.getId()) {
                     case R.id.dialog_hours:
+                        currentInput = hours;
                         nextInput = mins;
                         break;
 
                     case R.id.dialog_mins:
+                        currentInput = mins;
                         nextInput = secs;
                         break;
 
                     case R.id.dialog_secs:
+                        currentInput = secs;
                         nextInput = tenths;
+                        break;
+
+                    case R.id.dialog_tenths:
+                        currentInput = tenths;
                         break;
                 }
             }

@@ -1,54 +1,82 @@
 package com.example.android.statwatch.statsComponents;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.view.ViewGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.android.statwatch.MainActivity;
 import com.example.android.statwatch.R;
 
 class StatsViews {
-    private TextView shortestEventView;
-    private TextView averageTimeView;
-    private TextView longestEventView;
-    private TextView moeView;
-    private TextView stdDevView;
+    private TextView intervalMin;
+    private TextView intervalMax;
+    private TextView shortestTime;
+    private TextView averageTime;
+    private TextView longestTime;
+    private TextView stdDev;
+    private TextView ciPercentage;
+    private TextView moeInterval;
+    private View timeBar;
+    private int maxWidth;
 
-    StatsViews(final StatsFragment statsFragment) {
+    StatsViews(final StatsFragment statsFragment, int ci) {
         final MainActivity app = (MainActivity) statsFragment.requireContext();
-        LinearLayout moeButton = app.findViewById(R.id.margin_of_error_button);
-        shortestEventView = app.findViewById(R.id.shortest_event_time);
-        averageTimeView = app.findViewById(R.id.average_time_time);
-        longestEventView = app.findViewById(R.id.longest_event_time);
-        stdDevView = app.findViewById(R.id.std_dev_value);
-        moeView = app.findViewById(R.id.margin_of_error_value);
-
-        moeButton.setOnClickListener(new View.OnClickListener() {
+        intervalMin = app.findViewById(R.id.min_time);
+        intervalMax = app.findViewById(R.id.max_time);
+        shortestTime = app.findViewById(R.id.shortest_event_time);
+        averageTime = app.findViewById(R.id.average_time);
+        longestTime = app.findViewById(R.id.longest_event_time);
+        stdDev = app.findViewById(R.id.std_dev_value);
+        moeInterval = app.findViewById(R.id.moe);
+        timeBar = app.findViewById(R.id.time_bar);
+        timeBar.post(new Runnable() {
             @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(app);
-                builder.setTitle("Confidence interval. For details see Menu > More") //todo
-                        .setSingleChoiceItems(new CharSequence[]{"99%", "95%", "90%", "80%"},
-                                statsFragment.getAplhaSelection(),
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        statsFragment.updateAlphaSelection(which);
-                                        dialog.dismiss();
-                                    }
-                                }).create()
-                        .show();
+            public void run() {
+                maxWidth = timeBar.getWidth();
+            }
+        });
+
+        ciPercentage = app.findViewById(R.id.confidence_interval_value);
+        ciPercentage.setText(ci + "%");
+
+        SeekBar confidenceSeekbar = app.findViewById(R.id.confidence_seekbar);
+        confidenceSeekbar.setProgress(ci - 80);
+        confidenceSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                progress += 80;
+                ciPercentage.setText(progress + "%");
+                statsFragment.setConfidence(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }
 
-    void setStats(StatsManager.Stats stats) {
-        shortestEventView.setText(stats.shortest);
-        averageTimeView.setText(stats.average);
-        longestEventView.setText(stats.longest);
-        stdDevView.setText(stats.stdDev);
-        moeView.setText(stats.moe);
+    void refreshStats(StatsManager.Stats stats) {
+        intervalMin.setText(stats.minTime);
+        intervalMax.setText(stats.maxTime);
+        shortestTime.setText(stats.shortest);
+        averageTime.setText(stats.average);
+        longestTime.setText(stats.longest);
+        stdDev.setText(stats.stdDev);
+        moeInterval.setText(stats.moe);
+
+        calculateTimeBar(stats.ratio);
+    }
+
+    private void calculateTimeBar(double ratio) {
+        ViewGroup.LayoutParams params = timeBar.getLayoutParams();
+        params.width = (int) (maxWidth * ratio);
+        timeBar.setLayoutParams(params);
     }
 }

@@ -4,11 +4,13 @@
     <color name="colorPrimaryLight">#42424e</color>
     <color name="colorPrimaryDark">#2c2c34</color>
     <color name="colorAccent">#0075ff</color>
+    <color name="colorAccentSecondary">#ffe100</color>
     <color name="selectedEventColour">#60ff1744</color>
     <color name="backgroundColour">#222222</color>
     <color name="backgroundColourTransparent">#00222222</color>
     <color name="navbar">#1b1b1b</color>
     <color name="textColourLight">#f0f0f0</color>
+    <color name="textColourBlue">#7fbaff</color>
 
     <!--ripple colours-->
     <color name="rippleGrey">#4099999c</color>
