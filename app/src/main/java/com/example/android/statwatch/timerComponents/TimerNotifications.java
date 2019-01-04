@@ -69,7 +69,7 @@ class TimerNotifications {
     }
 
     private void updateBuilderContent(boolean eventAdded) {
-        builder.setContentTitle(Timer.formatDuration(timerService.getTime(), true));
+        builder.setContentTitle(Timer.formatDuration(timerService.getTime(), true, false));
         builder.mActions.clear();
 
         switch (timerService.getTimerState()) {
@@ -93,7 +93,7 @@ class TimerNotifications {
 
                 if(eventAdded) {
                     builder.setContentText("Event added");
-                    builder.setContentTitle(Timer.formatDuration(timerService.lastAddedTime(), true));
+                    builder.setContentTitle(Timer.formatDuration(timerService.lastAddedTime(), true, false));
                 } else {
                     builder.setContentText("StatWatch reset");
                 }

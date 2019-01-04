@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 
 import static com.example.android.statwatch.utils.Constants.PREFS;
-import static com.example.android.statwatch.utils.Constants.SELECTED_ALPHA;
+import static com.example.android.statwatch.utils.Constants.SELECTED_CONFIDENCE;
 
 public class StatsFragment extends Fragment {
     private SharedPreferences prefs;
@@ -16,23 +16,23 @@ public class StatsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        statsManager = new StatsManager(prefs, getAplhaSelection());
-        statsViews = new StatsViews(this);
+        statsManager = new StatsManager(prefs, getConfidence());
+        statsViews = new StatsViews(this, getConfidence());
         refresh();
     }
 
     public void refresh() {
         StatsManager.Stats stats = statsManager.getStats();
-        statsViews.setStats(stats);
+        statsViews.refreshStats(stats);
     }
 
-    void updateAlphaSelection(int selectedMoe) {
-        prefs.edit().putInt(SELECTED_ALPHA, selectedMoe).apply();
-        statsManager.setAlpha(selectedMoe);
+    void setConfidence(int ci) {
+        prefs.edit().putInt(SELECTED_CONFIDENCE, ci).apply();
+        statsManager.setAlpha(ci);
         refresh();
     }
 
-    int getAplhaSelection() {
-        return prefs.getInt(SELECTED_ALPHA, 1);
+    int getConfidence() {
+        return prefs.getInt(SELECTED_CONFIDENCE, 1);
     }
 }

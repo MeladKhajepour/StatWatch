@@ -13,165 +13,206 @@
         app:layout_constraintTop_toBottomOf="@id/timer_textview"
         app:layout_constraintBottom_toTopOf="@+id/events_list">
 
-        <View
-            android:id="@+id/moe_bar"
+        <!--NEW STATS CONTROLLER -->
+        <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginEnd="42dp"
-            android:layout_marginStart="42dp"
-            android:background="@color/colorAccent"/>
+            android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_vertical"
-            android:layout_marginBottom="@dimen/margin_vertical"
-            android:baselineAligned="false">
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/min_time"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_marginEnd="10dp"
+                android:gravity="center_vertical"
+                android:textSize="14sp"
+                android:fontFamily="@font/lato"
+                tool:text="00:00:00"
+                android:textColor="@color/textColourBlue"
+                app:layout_constraintEnd_toStartOf="@id/time_bar"/>
 
-                <TextView
-                    android:id="@+id/shortest_event_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAlignment="center"
-                    android:text="Shortest"
-                    style="@style/TitleText"/>
+            <FrameLayout
+                android:id="@+id/time_bar"
+                android:layout_height="5dp"
+                android:layout_width="match_parent"
+                android:layout_marginEnd="92dp"
+                android:layout_marginStart="92dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:background="@color/colorAccent">
 
-                <TextView
-                    android:id="@+id/shortest_event_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/stats_margin_top"
-                    android:textAlignment="center"
-                    tool:text="00:00.0"
-                    style="@style/StatValue"/>
+                <View
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/background_circle"
+                    android:layout_gravity="center_horizontal"/>
 
-            </LinearLayout>
+            </FrameLayout>
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/max_time"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_marginStart="10dp"
+                android:gravity="center_vertical"
+                android:textSize="14sp"
+                android:fontFamily="@font/lato"
+                tool:text="00:00:00"
+                android:textColor="@color/textColourBlue"
+                app:layout_constraintStart_toEndOf="@id/time_bar"/>
 
-                <TextView
-                    android:id="@+id/average_time_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAlignment="center"
-                    android:text="Average"
-                    style="@style/TitleText"/>
+        </android.support.constraint.ConstraintLayout>
 
-                <TextView
-                    android:id="@+id/average_time_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/stats_margin_top"
-                    android:textAlignment="center"
-                    tool:text="00:00.0"
-                    style="@style/StatValue"/>
+        <FrameLayout
+            android:layout_width="1dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@android:color/white"/>
 
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/longest_event_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAlignment="center"
-                    android:text="Longest"
-                    style="@style/TitleText"/>
-
-                <TextView
-                    android:id="@+id/longest_event_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/stats_margin_top"
-                    android:textAlignment="center"
-                    tool:text="00:00.0"
-                    style="@style/StatValue"/>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/expanded_stats"
+        <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:baselineAligned="false">
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp">
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/shortest_event_label"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginRight="@dimen/margin_horizontal"
-                android:layout_marginLeft="@dimen/margin_horizontal"
-                android:layout_marginBottom="14dp"
-                android:paddingTop="@dimen/padding_vertical"
-                android:paddingBottom="@dimen/padding_vertical">
+                android:layout_marginStart="24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textSize="15sp"
+                android:fontFamily="@font/lato"
+                android:text="Shortest"/>
 
-                <TextView
-                    android:id="@+id/std_dev_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Std Dev"
-                    android:textAlignment="center"
-                    style="@style/TitleText"/>
-
-                <TextView
-                    android:id="@+id/std_dev_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/stats_margin_top"
-                    android:textAlignment="center"
-                    tool:text="00:00.0"
-                    style="@style/StatValue"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/margin_of_error_button"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/shortest_event_time"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginRight="@dimen/margin_horizontal"
-                android:layout_marginLeft="@dimen/margin_horizontal"
-                android:orientation="vertical"
-                android:background="@drawable/button_moe"
-                android:paddingTop="@dimen/padding_vertical"
-                android:paddingBottom="@dimen/padding_vertical"
-                android:elevation="4dp">
+                android:layout_marginTop="3dp"
+                app:layout_constraintTop_toBottomOf="@id/shortest_event_label"
+                app:layout_constraintEnd_toEndOf="@id/shortest_event_label"
+                app:layout_constraintStart_toStartOf="@id/shortest_event_label"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato_light"
+                tool:text="00:00.0"/>
 
-                <TextView
-                    android:id="@+id/margin_of_error_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="MoE"
-                    android:textAlignment="center"
-                    style="@style/TitleText"/>
+            <TextView
+                android:id="@+id/std_dev_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="@id/shortest_event_label"
+                app:layout_constraintTop_toBottomOf="@id/shortest_event_time"
+                app:layout_constraintEnd_toEndOf="@id/shortest_event_label"
+                android:textSize="15sp"
+                android:fontFamily="@font/lato"
+                android:text="Std Dev"/>
 
-                <TextView
-                    android:id="@+id/margin_of_error_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/stats_margin_top"
-                    android:textAlignment="center"
-                    tool:text="00:00.0"
-                    style="@style/StatValue"/>
+            <TextView
+                android:id="@+id/std_dev_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                app:layout_constraintTop_toBottomOf="@id/std_dev_label"
+                app:layout_constraintStart_toStartOf="@id/std_dev_label"
+                app:layout_constraintEnd_toEndOf="@id/std_dev_label"
+                android:textSize="16sp"
+                tool:text="00:00.0"/>
 
-            </LinearLayout>
-        </LinearLayout>
+            <TextView
+                android:id="@+id/average_time_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:textSize="15sp"
+                android:fontFamily="@font/lato"
+                android:text="Avg"/>
+
+            <TextView
+                android:id="@+id/average_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                app:layout_constraintTop_toBottomOf="@id/average_time_label"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:textSize="17sp"
+                android:fontFamily="@font/lato"
+                tool:text="5:40"/>
+
+            <TextView
+                android:id="@+id/moe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                app:layout_constraintStart_toEndOf="@id/average_time"
+                app:layout_constraintTop_toTopOf="@id/average_time"
+                app:layout_constraintBottom_toBottomOf="@id/average_time"
+                tool:text="± 20"
+                android:fontFamily="@font/lato"
+                android:textSize="14sp"
+                android:textColor="@color/textColourBlue"/>
+
+            <TextView
+                android:id="@+id/longest_event_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato"
+                android:text="Longest"/>
+
+            <TextView
+                android:id="@+id/longest_event_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                app:layout_constraintTop_toBottomOf="@id/longest_event_label"
+                app:layout_constraintEnd_toEndOf="@id/longest_event_label"
+                app:layout_constraintStart_toStartOf="@id/longest_event_label"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato_light"
+                tool:text="00:00.0"/>
+
+            <TextView
+                android:id="@+id/confidence_interval_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toEndOf="@id/std_dev_label"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/longest_event_time"
+                android:textSize="16sp"
+                android:fontFamily="@font/lato"
+                android:text="Confidence Interval"/>
+
+            <SeekBar
+                android:id="@+id/confidence_seekbar"
+                android:layout_width="190dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="8dp"
+                android:max="19"
+                app:layout_constraintStart_toStartOf="@id/confidence_interval_label"
+                app:layout_constraintEnd_toEndOf="@id/confidence_interval_label"
+                app:layout_constraintTop_toBottomOf="@id/confidence_interval_label"/>
+
+            <TextView
+                android:id="@+id/confidence_interval_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/confidence_seekbar"
+                app:layout_constraintTop_toTopOf="@id/confidence_seekbar"
+                app:layout_constraintBottom_toBottomOf="@id/confidence_seekbar"
+                android:text="95%"
+                android:textSize="15sp"
+                android:fontFamily="@font/lato"
+                android:textColor="@color/textColourBlue"/>
+
+        </android.support.constraint.ConstraintLayout>
     </LinearLayout>
 </layout>

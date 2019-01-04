@@ -100,10 +100,15 @@ public class Timer {
     }
 
     public static String formatDuration(long durationMillis) {
-        return formatDuration(durationMillis, false);
+        return formatDuration(durationMillis, false, true);
     }
 
-    static String formatDuration(long durationMillis, boolean truncateTenths) {
+    public static String formatDuration(long durationMillis, boolean forNotification, boolean keepTenths) {
+
+        if(durationMillis < 0) {
+            return "-- : -- : --";
+        }
+
         long durationTenths = Math.round(durationMillis / 100f); // rounds millis to nearest tenth of a second
         long durationSeconds = durationTenths / 10L;
         int hours;
@@ -113,18 +118,16 @@ public class Timer {
         String formattedTime;
 
         if(minutes < 60) {
-            formattedTime = truncateTenths ?
+            formattedTime = forNotification ?
                     String.format(Locale.getDefault(), "%d:%02d", minutes, seconds) :
                     String.format(Locale.getDefault(), "%d:%02d.%01d", minutes, seconds, tenths);
         } else {
             hours = minutes / 60;
             minutes = minutes % 60;
 
-            formattedTime = String.format(
-                    Locale.getDefault(),
-                    "%d:%02d:%02d.%01d",
-                    hours, minutes, seconds, tenths
-            );
+            formattedTime = keepTenths ?
+                    String.format(Locale.getDefault(), "%d:%02d:%02d.%01d", hours, minutes, seconds, tenths) :
+                    String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds);
         }
 
         return formattedTime;

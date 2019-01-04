@@ -12,33 +12,23 @@ import java.util.List;
 
 class StatsManager {
     private SharedPreferences prefs;
+    private long minTime;
+    private long maxTime;
     private long shortest;
     private long longest;
     private long average;
     private long stdDev;
+    private long maxMoe;
     private long moe;
     private float alpha;
 
-    StatsManager(SharedPreferences prefs, int alphaDialogItem) {
+    StatsManager(SharedPreferences prefs, int ci) {
         this.prefs = prefs;
-        setAlpha(alphaDialogItem);
+        setAlpha(ci);
     }
 
-    void setAlpha(int alphaDialogItem) {
-
-        switch (alphaDialogItem) {
-            case 0: alpha = 0.01f;
-                break;
-
-            case 1: alpha = 0.05f;
-                break;
-
-            case 2: alpha = 0.1f;
-                break;
-
-            default: alpha = 0.2f;
-                break;
-        }
+    void setAlpha(int ci) {
+        alpha = (100 - ci) / 100f;
     }
 
     Stats getStats() {
@@ -56,6 +46,7 @@ class StatsManager {
             average = 0;
             stdDev = 0;
             moe = 0;
+            maxMoe = 0;
 
         } else {
             long eventDuration;
@@ -87,6 +78,8 @@ class StatsManager {
             }
 
             stdDev = (long) Math.sqrt(variance/(eventList.size() - 1));
+        } else {
+            stdDev = -1;
         }
     }
 
@@ -99,24 +92,43 @@ class StatsManager {
 
             TDistribution dist = new TDistribution(df);
             float t = (float) dist.inverseCumulativeProbability(p);
+            float tMax = (float) dist.inverseCumulativeProbability(0.995);
 
             moe = (long) ((stdDev/ Math.sqrt(eventListSize)) * t);
+            maxMoe = (long) ((stdDev/ Math.sqrt(eventListSize)) * tMax);
+            minTime = average - moe;
+            maxTime = average + moe;
+
+            if(minTime < 0) {
+                minTime = 0;
+            }
+        } else {
+            minTime = -1;
+            maxTime = -1;
+            moe = -1;
+            maxMoe = -1;
         }
     }
 
     class Stats {
+        String minTime;
+        String maxTime;
         String shortest;
         String longest;
         String average;
         String stdDev;
         String moe;
+        double ratio;
 
         private Stats() {
-            shortest = Timer.formatDuration(StatsManager.this.shortest);
-            longest = Timer.formatDuration(StatsManager.this.longest);
-            average = Timer.formatDuration(StatsManager.this.average);
-            stdDev = Timer.formatDuration(StatsManager.this.stdDev);
-            moe = Timer.formatDuration(StatsManager.this.moe);
+            minTime = Timer.formatDuration(StatsManager.this.minTime, false, false);
+            maxTime = Timer.formatDuration(StatsManager.this.maxTime, false, false);
+            shortest = Timer.formatDuration(StatsManager.this.shortest, false, false);
+            longest = Timer.formatDuration(StatsManager.this.longest, false, false);
+            average = Timer.formatDuration(StatsManager.this.average, false, false);
+            stdDev = Timer.formatDuration(StatsManager.this.stdDev, false, false);
+            moe = "± " + Timer.formatDuration(StatsManager.this.moe, false, false);
+            ratio = ((double) StatsManager.this.moe / StatsManager.this.maxMoe);
         }
     }
 }

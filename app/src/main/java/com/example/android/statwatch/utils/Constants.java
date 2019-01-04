@@ -25,7 +25,7 @@ public final class Constants {
     public static final String PREFS = "prefs";
 
     //STATS FRAGMENT
-    public static final String SELECTED_ALPHA = "selectedAlpha";
+    public static final String SELECTED_CONFIDENCE = "selectedConfidence";
 
     // TIMER
     public static final String ELAPSED_TIME = "elapsedTime";
